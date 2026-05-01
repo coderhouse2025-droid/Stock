@@ -79,17 +79,21 @@ stock/
 
 ---
 ## 🗃️ Estructura de la base de datos
+## 📁 Estructura de la base de datos
+
+```js
 {
   id: "1234567890",
   name: "Cien años de soledad",
   brand: "Gabriel García Márquez",  // o autor/fabricante
-  code: "9788437604947",             // ISBN / código de barras
-  price: 15.99,                      // Precio unitario (número)
-  stock: 5,                          // Cantidad disponible
-  category: "libros",                // Para organización
-  location: "Estante A2",            // Ubicación física
-  dateAdded: "2024-01-15"            // Fecha de registro
+  code: "9788437604947",            // ISBN / código de barras
+  price: 15.99,                     // Precio unitario (número)
+  stock: 5,                         // Cantidad disponible
+  category: "libros",               // Para organización
+  location: "Estante A2",           // Ubicación física
+  dateAdded: "2024-01-15"           // Fecha de registro
 }
+
 
 
 ---
