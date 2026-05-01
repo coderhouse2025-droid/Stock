@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>📦 Stock - Inventario con escáner y precios</title>
+    <title>📦 Stock - Inventario sincronizado + Escáner</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -11,80 +11,40 @@
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background: linear-gradient(145deg, #e9eff7 0%, #dce4ef 100%);
-            font-family: 'Inter', sans-serif;
-            padding: 1rem;
-        }
-
-        .app-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.96);
-            border-radius: 2rem;
-            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: #0a192f;
-            padding: 1rem 2rem;
-            color: white;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid #2b7a7a;
-        }
-
+        body { background: linear-gradient(145deg, #e9eff7 0%, #dce4ef 100%); font-family: 'Inter', sans-serif; padding: 1rem; }
+        .app-container { max-width: 1600px; margin: 0 auto; background: rgba(255, 255, 255, 0.96); border-radius: 2rem; box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.3); overflow: hidden; }
+        .header { background: #0a192f; padding: 1rem 2rem; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 3px solid #2b7a7a; }
         .logo-area h1 { font-weight: 700; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
         .stats-badge { background: rgba(45, 212, 191, 0.2); padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.85rem; }
-
-        .three-col-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr 350px;
-            gap: 0;
-            min-height: 75vh;
-        }
-
-        /* Panel escáner */
+        .three-col-grid { display: grid; grid-template-columns: 350px 1fr 350px; gap: 0; min-height: 75vh; }
         .scanner-panel { background: #ffffff; border-right: 1px solid #e2e8f0; padding: 1.2rem; overflow-y: auto; }
-        .scanner-container { background: #0f172a; border-radius: 1.5rem; overflow: hidden; margin-bottom: 1rem; }
-        #scannerView { width: 100%; min-height: 240px; background: #000; }
+        .scanner-container { background: #0f172a; border-radius: 1.5rem; overflow: hidden; margin-bottom: 1rem; position: relative; min-height: 200px; }
+        #scannerView { width: 100%; min-height: 220px; background: #000; }
         .scanner-controls { display: flex; gap: 0.6rem; margin: 0.8rem 0; flex-wrap: wrap; }
-
-        /* Panel central - código */
-        .barcode-panel { padding: 1.5rem; background: #fafcff; display: flex; flex-direction: column; }
-        .barcode-card { background: white; border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 10px 25px -10px rgba(0,0,0,0.1); text-align: center; }
-        #barcodeContainer { background: #fff; padding: 1rem; border-radius: 1rem; display: flex; justify-content: center; }
-
-        /* Panel formulario */
-        .editor-panel { background: #ffffff; border-left: 1px solid #e2e8f0; padding: 1.2rem; overflow-y: auto; }
-
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.3rem; color: #1e2f44; }
-        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1.5px solid #e2e8f0; border-radius: 1rem; font-family: monospace; }
-
-        .btn { padding: 0.6rem 1rem; border: none; border-radius: 2rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center; font-family: 'Inter', sans-serif; }
+        .btn { padding: 0.6rem 1rem; border: none; border-radius: 2rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center; font-family: 'Inter', sans-serif; transition: all 0.2s; }
         .btn-primary { background: #0a192f; color: white; }
-        .btn-primary:hover { background: #143450; }
+        .btn-primary:hover { background: #143450; transform: translateY(-2px); }
         .btn-success { background: #10b981; color: white; }
         .btn-warning { background: #f59e0b; color: white; }
         .btn-danger { background: #ef4444; color: white; }
-
+        .btn-secondary { background: #64748b; color: white; }
         .book-list { max-height: 280px; overflow-y: auto; margin-top: 0.8rem; }
-        .book-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.6rem; margin-bottom: 0.5rem; cursor: pointer; }
+        .book-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.6rem; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s; }
         .book-item:hover { border-color: #2b7a7a; transform: translateX(3px); }
         .book-title { font-weight: 700; font-size: 0.85rem; }
         .book-price { font-size: 0.75rem; color: #10b981; font-weight: 600; }
-
         .dashboard-stats { background: #0a192f10; border-radius: 1rem; padding: 0.8rem; margin-bottom: 1rem; text-align: center; }
         .stat-value { font-size: 1.3rem; font-weight: 700; color: #0a192f; }
-
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.3rem; color: #1e2f44; }
+        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1.5px solid #e2e8f0; border-radius: 1rem; font-family: monospace; }
+        .barcode-panel { padding: 1.5rem; background: #fafcff; display: flex; flex-direction: column; }
+        .barcode-card { background: white; border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 10px 25px -10px rgba(0,0,0,0.1); text-align: center; }
+        #barcodeContainer { background: #fff; padding: 1rem; border-radius: 1rem; display: flex; justify-content: center; }
+        .editor-panel { background: #ffffff; border-left: 1px solid #e2e8f0; padding: 1.2rem; overflow-y: auto; }
         .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0a192fe6; color: white; padding: 8px 18px; border-radius: 40px; z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none; font-size: 0.8rem; }
-
         @media (max-width: 1000px) { .three-col-grid { grid-template-columns: 1fr; } .scanner-panel, .editor-panel { border: none; border-top: 1px solid #e2e8f0; } }
+        .manual-input-section { margin: 0.5rem 0; }
     </style>
 </head>
 <body>
@@ -93,47 +53,62 @@
     <div class="header">
         <div class="logo-area">
             <h1><i class="fas fa-camera"></i> 📦 Stock</h1>
-            <p>Escáner + Inventario + Precios</p>
+            <p>Escáner + Inventario + Sincronización</p>
         </div>
-        <div class="stats-badge" id="statsBadge"><i class="fas fa-boxes"></i> <span id="bookCount">0</span> productos</div>
+        <div class="stats-badge"><i class="fas fa-boxes"></i> <span id="bookCount">0</span> productos</div>
     </div>
 
     <div class="three-col-grid">
-        <!-- PANEL IZQUIERDO: ESCÁNER + LISTA -->
+        <!-- PANEL IZQUIERDO: ESCÁNER + SINCRO -->
         <div class="scanner-panel">
-            <h3 style="margin-bottom: 0.5rem;"><i class="fas fa-qrcode"></i> Escáner</h3>
+            <h3><i class="fas fa-qrcode"></i> Escáner</h3>
             <div class="scanner-container"><div id="scannerView"></div></div>
             <div class="scanner-controls">
-                <button id="startScannerBtn" class="btn btn-primary"><i class="fas fa-play"></i> Iniciar</button>
+                <button id="startScannerBtn" class="btn btn-primary"><i class="fas fa-play"></i> Iniciar cámara</button>
                 <button id="stopScannerBtn" class="btn btn-danger"><i class="fas fa-stop"></i> Detener</button>
             </div>
-            <div id="scanResult" style="background:#2b7a7a20; padding:0.5rem; border-radius:1rem; text-align:center; font-size:0.75rem;">
-                <i class="fas fa-info-circle"></i> Escanea un código
+            
+            <!-- Entrada manual alternativa -->
+            <div class="manual-input-section">
+                <label style="font-size:0.7rem;">📝 O escribe el código manualmente:</label>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.3rem;">
+                    <input type="text" id="manualCodeInput" placeholder="Ej: 9788437604947" style="flex:1; padding:0.5rem; border-radius:2rem; border:1px solid #cbd5e1;">
+                    <button id="applyManualCodeBtn" class="btn btn-secondary" style="padding:0.5rem 1rem;"><i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div id="scanResult" style="background:#2b7a7a20; padding:0.5rem; border-radius:1rem; text-align:center; font-size:0.7rem; margin-top:0.5rem;">
+                <i class="fas fa-info-circle"></i> Escanea o escribe un código
             </div>
 
             <hr style="margin: 1rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3><i class="fas fa-list"></i> Inventario</h3>
-                <select id="currencySelect" style="width: auto; padding: 0.3rem; border-radius: 2rem;">
-                    <option value="$">$ USD</option>
-                    <option value="€">€ EUR</option>
-                    <option value="£">£ GBP</option>
-                    <option value="¥">¥ JPY</option>
-                </select>
-            </div>
             
-            <!-- DASHBOARD -->
+            <!-- Sincronización -->
+            <h3><i class="fas fa-cloud-upload-alt"></i> Sincronización</h3>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <button id="exportToGistBtn" class="btn btn-primary" style="flex:1;"><i class="fab fa-github"></i> Guardar en la nube</button>
+                <button id="importFromGistBtn" class="btn btn-success" style="flex:1;"><i class="fas fa-cloud-download-alt"></i> Recuperar nube</button>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="exportBooksBtn" class="btn btn-secondary" style="flex:1;"><i class="fas fa-download"></i> Exportar JSON</button>
+                <label class="btn btn-secondary" style="flex:1; text-align:center; cursor:pointer;"><i class="fas fa-upload"></i> Importar JSON<input type="file" id="importFileInput" accept=".json" style="display:none;"></label>
+            </div>
+            <div id="gistStatus" style="font-size:0.7rem; color:#5b6e8c; margin-top:0.5rem; text-align:center;"></div>
+
+            <hr style="margin: 1rem 0;">
+            
+            <!-- Dashboard -->
             <div class="dashboard-stats">
                 <div><i class="fas fa-cubes"></i> <span id="totalProducts">0</span> productos</div>
                 <div><i class="fas fa-dollar-sign"></i> Valor total: <span id="totalValue">0</span> <span id="currencySymbol">$</span></div>
                 <div><i class="fas fa-chart-line"></i> Precio promedio: <span id="avgPrice">0</span> <span id="avgCurrencySymbol">$</span></div>
             </div>
 
+            <h3><i class="fas fa-list"></i> Inventario</h3>
             <div id="bookList" class="book-list">Cargando...</div>
-            <button id="exportBooksBtn" class="btn" style="width:100%; margin-top:0.8rem; background:#10b981; color:white;"><i class="fas fa-download"></i> Exportar JSON</button>
         </div>
 
-        <!-- PANEL CENTRAL: CÓDIGO DE BARRAS GENERADO -->
+        <!-- PANEL CENTRAL -->
         <div class="barcode-panel">
             <div class="barcode-card">
                 <h4><i class="fas fa-tag"></i> Código de barras</h4>
@@ -145,36 +120,36 @@
             </div>
         </div>
 
-        <!-- PANEL DERECHO: FORMULARIO CON PRECIO Y STOCK -->
+        <!-- PANEL DERECHO -->
         <div class="editor-panel">
             <h3><i class="fas fa-edit"></i> <span id="formTitle">Registrar producto</span></h3>
             <form id="productForm">
                 <input type="hidden" id="productId">
                 <div class="form-group">
-                    <label><i class="fas fa-barcode"></i> Código (ISBN/EAN)</label>
-                    <input type="text" id="codeInput" placeholder="Escanea o escribe" required>
+                    <label><i class="fas fa-barcode"></i> Código *</label>
+                    <input type="text" id="codeInput" required placeholder="Escanea o escribe">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-heading"></i> Nombre / Título *</label>
+                    <label><i class="fas fa-heading"></i> Nombre *</label>
                     <input type="text" id="nameInput" required placeholder="Ej: Cien años de soledad">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-user"></i> Marca / Autor</label>
-                    <input type="text" id="brandInput" placeholder="Gabriel García Márquez">
+                    <label><i class="fas fa-user"></i> Marca/Autor</label>
+                    <input type="text" id="brandInput" placeholder="Opcional">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-dollar-sign"></i> Precio unitario <span id="priceSymbolLabel">($)</span></label>
+                    <label><i class="fas fa-dollar-sign"></i> Precio ($)</label>
                     <input type="number" id="priceInput" step="0.01" placeholder="15.99">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-boxes"></i> Stock / Cantidad</label>
-                    <input type="number" id="stockInput" value="1" placeholder="Cantidad">
+                    <label><i class="fas fa-boxes"></i> Stock</label>
+                    <input type="number" id="stockInput" value="1">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-tags"></i> Categoría</label>
-                    <input type="text" id="categoryInput" placeholder="Libros, Electrónica, etc.">
+                    <input type="text" id="categoryInput" placeholder="Libros, etc.">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;"><i class="fas fa-save"></i> Guardar producto</button>
+                <button type="submit" class="btn btn-primary" style="width:100%;"><i class="fas fa-save"></i> Guardar</button>
                 <button type="button" id="clearFormBtn" class="btn" style="width:100%; margin-top:0.5rem; background:#e2e8f0;"><i class="fas fa-eraser"></i> Limpiar</button>
             </form>
         </div>
@@ -193,6 +168,8 @@
     const scannerView = document.getElementById('scannerView');
     const startBtn = document.getElementById('startScannerBtn');
     const stopBtn = document.getElementById('stopScannerBtn');
+    const manualCodeInput = document.getElementById('manualCodeInput');
+    const applyManualCodeBtn = document.getElementById('applyManualCodeBtn');
     const scanResultDiv = document.getElementById('scanResult');
     const codeInput = document.getElementById('codeInput');
     const nameInput = document.getElementById('nameInput');
@@ -205,14 +182,13 @@
     const clearFormBtn = document.getElementById('clearFormBtn');
     const bookListDiv = document.getElementById('bookList');
     const exportBooksBtn = document.getElementById('exportBooksBtn');
+    const exportToGistBtn = document.getElementById('exportToGistBtn');
+    const importFromGistBtn = document.getElementById('importFromGistBtn');
+    const importFileInput = document.getElementById('importFileInput');
     const bookCountSpan = document.getElementById('bookCount');
     const totalProductsSpan = document.getElementById('totalProducts');
     const totalValueSpan = document.getElementById('totalValue');
     const avgPriceSpan = document.getElementById('avgPrice');
-    const currencySelect = document.getElementById('currencySelect');
-    const priceSymbolLabel = document.getElementById('priceSymbolLabel');
-    const currencySymbolSpan = document.getElementById('currencySymbol');
-    const avgCurrencySymbolSpan = document.getElementById('avgCurrencySymbol');
 
     // Toast
     function showToast(msg, isError = false) {
@@ -220,20 +196,19 @@
         toast.textContent = isError ? `⚠️ ${msg}` : `✓ ${msg}`;
         toast.style.background = isError ? '#ef4444e6' : '#0a192fe6';
         toast.style.opacity = '1';
-        setTimeout(() => toast.style.opacity = '0', 2500);
+        setTimeout(() => toast.style.opacity = '0', 3000);
     }
 
-    // Cargar datos desde localStorage
+    // Cargar datos
     function loadProducts() {
-        const stored = localStorage.getItem('stock_inventory_v2');
+        const stored = localStorage.getItem('stock_inventory_v3');
         if (stored) {
             products = JSON.parse(stored);
+            showToast(`Cargados ${products.length} productos desde este dispositivo`);
         } else {
-            // Datos de ejemplo
             products = [
-                { id: '1', name: 'Cien años de soledad', brand: 'Gabriel García Márquez', code: '9788437604947', price: 15.99, stock: 5, category: 'libros', dateAdded: '2024-01-15' },
-                { id: '2', name: 'El Alquimista', brand: 'Paulo Coelho', code: '9788408045391', price: 12.50, stock: 3, category: 'libros', dateAdded: '2024-01-15' },
-                { id: '3', name: 'Teclado mecánico', brand: 'Logitech', code: '123456789012', price: 45.00, stock: 2, category: 'electrónica', dateAdded: '2024-01-16' }
+                { id: '1', name: 'Cien años de soledad', brand: 'Gabriel García Márquez', code: '9788437604947', price: 15.99, stock: 5, category: 'libros', dateAdded: '2026-01-15' },
+                { id: '2', name: 'El Alquimista', brand: 'Paulo Coelho', code: '9788408045391', price: 12.50, stock: 3, category: 'libros', dateAdded: '2026-01-15' }
             ];
             saveProducts();
         }
@@ -241,32 +216,24 @@
     }
 
     function saveProducts() {
-        localStorage.setItem('stock_inventory_v2', JSON.stringify(products));
+        localStorage.setItem('stock_inventory_v3', JSON.stringify(products));
         updateUI();
+        showToast('Datos guardados localmente');
     }
 
     function updateUI() {
         updateProductList();
         updateStats();
-        updateCurrencySymbolInUI();
     }
 
     function updateStats() {
         const total = products.length;
         const totalValue = products.reduce((sum, p) => sum + (p.price || 0) * (p.stock || 0), 0);
         const avgPrice = total > 0 ? (products.reduce((sum, p) => sum + (p.price || 0), 0) / total) : 0;
-        
         bookCountSpan.innerText = total;
         if(totalProductsSpan) totalProductsSpan.innerText = total;
         if(totalValueSpan) totalValueSpan.innerText = totalValue.toFixed(2);
         if(avgPriceSpan) avgPriceSpan.innerText = avgPrice.toFixed(2);
-    }
-
-    function updateCurrencySymbolInUI() {
-        if(priceSymbolLabel) priceSymbolLabel.innerText = `(${currencySymbol})`;
-        if(currencySymbolSpan) currencySymbolSpan.innerText = currencySymbol;
-        if(avgCurrencySymbolSpan) avgCurrencySymbolSpan.innerText = currencySymbol;
-        updateProductList(); // refresh prices in list
     }
 
     function updateProductList() {
@@ -385,34 +352,202 @@
         } catch(e) { container.innerHTML = '<div style="color:red;">Error</div>'; }
     }
 
-    // ESCÁNER
+    // ESCÁNER MEJORADO
     function startScanner() {
         if (scannerActive) return;
         Quagga.init({
-            inputStream: { name: "Live", type: "LiveStream", target: scannerView, constraints: { facingMode: "environment" } },
-            decoder: { readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "code_39_reader"] }
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: scannerView,
+                constraints: {
+                    facingMode: "environment",
+                    width: { min: 640, ideal: 1280 },
+                    height: { min: 480, ideal: 720 }
+                }
+            },
+            decoder: {
+                readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "code_39_reader"],
+                debug: false
+            },
+            locate: true,
+            numOfWorkers: 4
         }, function(err) {
-            if (err) { showToast("Error cámara: " + err, true); return; }
+            if (err) { showToast("Error al iniciar cámara. Prueba escribir manualmente.", true); return; }
             Quagga.start();
             scannerActive = true;
-            showToast("Cámara activa. Enfoca un código.");
+            scanResultDiv.innerHTML = '<i class="fas fa-video"></i> Cámara activa. Enfoca el código lentamente.';
+            showToast("Cámara activada - acerca lentamente el código");
         });
+        
         Quagga.onDetected(function(result) {
             let code = result.codeResult.code;
-            if (code) {
-                Quagga.stop(); scannerActive = false;
+            if (code && code.length > 5) {
+                Quagga.stop(); 
+                scannerActive = false;
                 scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${code}`;
                 codeInput.value = code;
                 generateBarcode(code);
                 const existing = products.find(p => p.code === code);
-                if (existing) { showToast(`Producto existente: ${existing.name}`); selectProduct(existing.id); }
-                else { clearForm(); codeInput.value = code; nameInput.focus(); }
+                if (existing) { 
+                    showToast(`Producto existente: ${existing.name}`); 
+                    selectProduct(existing.id);
+                } else { 
+                    clearForm(); 
+                    codeInput.value = code; 
+                    nameInput.focus();
+                    showToast("Código detectado. Completa el nombre y guarda.");
+                }
             }
         });
     }
-    function stopScanner() { if (scannerActive) { Quagga.stop(); scannerActive = false; scanResultDiv.innerHTML = '<i class="fas fa-stop"></i> Cámara detenida'; showToast("Cámara detenida"); } }
+    
+    function stopScanner() { 
+        if (scannerActive) { 
+            Quagga.stop(); 
+            scannerActive = false; 
+            scanResultDiv.innerHTML = '<i class="fas fa-stop"></i> Cámara detenida'; 
+            showToast("Cámara detenida"); 
+        } 
+    }
+    
+    // Entrada manual
+    function applyManualCode() {
+        const code = manualCodeInput.value.trim();
+        if (code) {
+            codeInput.value = code;
+            generateBarcode(code);
+            const existing = products.find(p => p.code === code);
+            if (existing) {
+                showToast(`Producto existente: ${existing.name}`);
+                selectProduct(existing.id);
+            } else {
+                clearForm();
+                codeInput.value = code;
+                nameInput.focus();
+                showToast("Código ingresado. Completa el formulario.");
+            }
+            manualCodeInput.value = '';
+        } else {
+            showToast("Ingresa un código válido", true);
+        }
+    }
 
-    // DESCARGAR / IMPRIMIR
+    // Sincronización con GitHub Gist
+    const GIST_ID_KEY = 'stock_gist_id';
+    
+    async function exportToGist() {
+        const token = prompt("🔐 Para guardar en la nube, necesitas un token de GitHub.\n\n1. Ve a https://github.com/settings/tokens\n2. Crea un token con permiso 'gist'\n3. Pega el token aquí:\n\n(Es seguro, solo se usa localmente)");
+        if (!token) return;
+        
+        const data = JSON.stringify(products, null, 2);
+        const gistId = localStorage.getItem(GIST_ID_KEY);
+        
+        try {
+            let response;
+            if (gistId) {
+                // Actualizar gist existente
+                response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        files: { 'stock_inventory.json': { content: data } }
+                    })
+                });
+            } else {
+                // Crear nuevo gist
+                response = await fetch('https://api.github.com/gists', {
+                    method: 'POST',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        description: 'Stock Inventory - Mi inventario de productos',
+                        public: false,
+                        files: { 'stock_inventory.json': { content: data } }
+                    })
+                });
+            }
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (!gistId) localStorage.setItem(GIST_ID_KEY, result.id);
+                document.getElementById('gistStatus').innerHTML = `<i class="fab fa-github"></i> ✅ Guardado en la nube! ID: ${result.id.substring(0,8)}...`;
+                showToast("¡Datos guardados en la nube! Puedes recuperarlos desde cualquier dispositivo.");
+            } else {
+                const error = await response.json();
+                showToast("Error: " + (error.message || "Token inválido"), true);
+            }
+        } catch(e) {
+            showToast("Error de conexión: " + e.message, true);
+        }
+    }
+    
+    async function importFromGist() {
+        const token = prompt("🔐 Pega tu token de GitHub para recuperar los datos de la nube:");
+        if (!token) return;
+        
+        const gistId = localStorage.getItem(GIST_ID_KEY);
+        if (!gistId) {
+            showToast("No hay un respaldo guardado previamente. Primero usa 'Guardar en la nube'", true);
+            return;
+        }
+        
+        try {
+            const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            
+            if (response.ok) {
+                const gist = await response.json();
+                const content = gist.files['stock_inventory.json']?.content;
+                if (content) {
+                    const importedProducts = JSON.parse(content);
+                    if (Array.isArray(importedProducts)) {
+                        products = importedProducts;
+                        saveProducts();
+                        showToast(`¡Sincronizado! Se cargaron ${products.length} productos desde la nube.`);
+                        updateUI();
+                    }
+                } else {
+                    showToast("No se encontró el archivo en el gist", true);
+                }
+            } else {
+                showToast("Error al recuperar datos", true);
+            }
+        } catch(e) {
+            showToast("Error: " + e.message, true);
+        }
+    }
+
+    // Exportar/Importar JSON manual
+    function exportProducts() {
+        const data = JSON.stringify(products, null, 2);
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `inventario_${new Date().toISOString().slice(0,10)}.json`; a.click();
+        URL.revokeObjectURL(url);
+        showToast('Archivo JSON exportado');
+    }
+    
+    function importProducts(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    products = imported;
+                    saveProducts();
+                    showToast(`Importados ${products.length} productos correctamente`);
+                    updateUI();
+                } else throw new Error();
+            } catch(err) {
+                showToast('Archivo JSON inválido', true);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Descargar/Imprimir
     async function downloadBarcode() {
         const container = document.getElementById('barcodeContainer');
         if (!container.querySelector('svg')) { showToast('No hay código', true); return; }
@@ -423,6 +558,7 @@
         link.click();
         showToast('Código descargado');
     }
+    
     function printBarcode() {
         const container = document.getElementById('barcodeContainer');
         if (!container.querySelector('svg')) { showToast('No hay código', true); return; }
@@ -430,36 +566,24 @@
         win.document.write(`<html><head><title>Imprimir código</title></head><body style="display:flex; justify-content:center; align-items:center; height:100vh;">${container.innerHTML}</body></html>`);
         win.document.close(); win.print();
     }
-    function exportProducts() {
-        const data = JSON.stringify(products, null, 2);
-        const blob = new Blob([data], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `inventario_${new Date().toISOString().slice(0,10)}.json`; a.click();
-        URL.revokeObjectURL(url);
-        showToast('Inventario exportado');
-    }
+    
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-
-    // MONEDA
-    function updateCurrency() {
-        currencySymbol = currencySelect.value;
-        updateCurrencySymbolInUI();
-        updateStats();
-        showToast(`Moneda cambiada a ${currencySymbol}`);
-    }
 
     // EVENTOS
     startBtn.addEventListener('click', startScanner);
     stopBtn.addEventListener('click', stopScanner);
+    applyManualCodeBtn.addEventListener('click', applyManualCode);
+    manualCodeInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') applyManualCode(); });
     productForm.addEventListener('submit', saveProduct);
     clearFormBtn.addEventListener('click', clearForm);
     downloadBarcodeBtn.addEventListener('click', downloadBarcode);
     printBarcodeBtn.addEventListener('click', printBarcode);
     exportBooksBtn.addEventListener('click', exportProducts);
-    currencySelect.addEventListener('change', updateCurrency);
+    exportToGistBtn.addEventListener('click', exportToGist);
+    importFromGistBtn.addEventListener('click', importFromGist);
+    importFileInput.addEventListener('change', (e) => { if(e.target.files[0]) importProducts(e.target.files[0]); e.target.value = ''; });
 
-    // INICIALIZAR
+    // Inicializar
     loadProducts();
     clearForm();
 </script>
