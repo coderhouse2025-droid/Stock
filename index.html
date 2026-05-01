@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>CodeForge Scanner | Escáner + Librería + Códigos de Barras</title>
+    <title>📦 Stock - Inventario con escáner y precios</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Librería de escaneo: QuaggaJS (potente para códigos de barras) -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background: linear-gradient(145deg, #e9eff7 0%, #dce4ef 100%);
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
             padding: 1rem;
         }
 
@@ -44,191 +38,53 @@
             border-bottom: 3px solid #2b7a7a;
         }
 
-        .logo-area h1 {
-            font-weight: 700;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .logo-area h1 { font-weight: 700; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .stats-badge { background: rgba(45, 212, 191, 0.2); padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.85rem; }
 
-        .stats-badge {
-            background: rgba(45, 212, 191, 0.2);
-            padding: 0.4rem 1rem;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* Layout 2 columnas flexible */
-        .two-col-grid {
+        .three-col-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 350px 1fr 350px;
             gap: 0;
-            min-height: 70vh;
+            min-height: 75vh;
         }
 
-        /* Panel izquierdo: escáner y libros */
-        .scanner-panel {
-            background: #ffffff;
-            border-right: 1px solid #e2e8f0;
-            padding: 1.5rem;
-            overflow-y: auto;
-            max-height: 75vh;
-        }
+        /* Panel escáner */
+        .scanner-panel { background: #ffffff; border-right: 1px solid #e2e8f0; padding: 1.2rem; overflow-y: auto; }
+        .scanner-container { background: #0f172a; border-radius: 1.5rem; overflow: hidden; margin-bottom: 1rem; }
+        #scannerView { width: 100%; min-height: 240px; background: #000; }
+        .scanner-controls { display: flex; gap: 0.6rem; margin: 0.8rem 0; flex-wrap: wrap; }
 
-        /* Panel derecho: código de barras y formulario */
-        .barcode-panel {
-            padding: 1.5rem;
-            background: #fafcff;
-            display: flex;
-            flex-direction: column;
-        }
+        /* Panel central - código */
+        .barcode-panel { padding: 1.5rem; background: #fafcff; display: flex; flex-direction: column; }
+        .barcode-card { background: white; border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 10px 25px -10px rgba(0,0,0,0.1); text-align: center; }
+        #barcodeContainer { background: #fff; padding: 1rem; border-radius: 1rem; display: flex; justify-content: center; }
 
-        /* Estilos del escáner */
-        .scanner-container {
-            background: #0f172a;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
+        /* Panel formulario */
+        .editor-panel { background: #ffffff; border-left: 1px solid #e2e8f0; padding: 1.2rem; overflow-y: auto; }
 
-        #scannerView {
-            width: 100%;
-            min-height: 280px;
-            background: #000;
-            position: relative;
-        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.3rem; color: #1e2f44; }
+        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1.5px solid #e2e8f0; border-radius: 1rem; font-family: monospace; }
 
-        .scanner-controls {
-            display: flex;
-            gap: 0.8rem;
-            margin: 1rem 0;
-            flex-wrap: wrap;
-        }
+        .btn { padding: 0.6rem 1rem; border: none; border-radius: 2rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center; font-family: 'Inter', sans-serif; }
+        .btn-primary { background: #0a192f; color: white; }
+        .btn-primary:hover { background: #143450; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
 
-        .btn {
-            padding: 0.7rem 1.2rem;
-            border: none;
-            border-radius: 2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Inter', sans-serif;
-        }
+        .book-list { max-height: 280px; overflow-y: auto; margin-top: 0.8rem; }
+        .book-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.6rem; margin-bottom: 0.5rem; cursor: pointer; }
+        .book-item:hover { border-color: #2b7a7a; transform: translateX(3px); }
+        .book-title { font-weight: 700; font-size: 0.85rem; }
+        .book-price { font-size: 0.75rem; color: #10b981; font-weight: 600; }
 
-        .btn-primary {
-            background: #0a192f;
-            color: white;
-        }
+        .dashboard-stats { background: #0a192f10; border-radius: 1rem; padding: 0.8rem; margin-bottom: 1rem; text-align: center; }
+        .stat-value { font-size: 1.3rem; font-weight: 700; color: #0a192f; }
 
-        .btn-primary:hover { background: #143450; transform: translateY(-1px); }
+        .toast-msg { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0a192fe6; color: white; padding: 8px 18px; border-radius: 40px; z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none; font-size: 0.8rem; }
 
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-warning {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .book-list {
-            margin-top: 1rem;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .book-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 0.7rem;
-            margin-bottom: 0.6rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .book-item:hover {
-            border-color: #2b7a7a;
-            transform: translateX(3px);
-        }
-
-        .book-title {
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .book-isbn {
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: #5b6e8c;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.8rem;
-            margin-bottom: 0.3rem;
-            color: #1e2f44;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.7rem;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 1rem;
-            font-family: 'Inter', monospace;
-        }
-
-        .scanned-badge {
-            background: #2b7a7a20;
-            padding: 0.5rem;
-            border-radius: 1rem;
-            text-align: center;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .toast-msg {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #0a192fe6;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            font-size: 0.85rem;
-        }
-
-        @media (max-width: 900px) {
-            .two-col-grid {
-                grid-template-columns: 1fr;
-            }
-            .scanner-panel {
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0;
-            }
-        }
+        @media (max-width: 1000px) { .three-col-grid { grid-template-columns: 1fr; } .scanner-panel, .editor-panel { border: none; border-top: 1px solid #e2e8f0; } }
     </style>
 </head>
 <body>
@@ -236,114 +92,127 @@
 <div class="app-container">
     <div class="header">
         <div class="logo-area">
-            <h1><i class="fas fa-camera"></i> CodeForge Scanner</h1>
-            <p>Escanea el ISBN y registra tu libro al instante</p>
+            <h1><i class="fas fa-camera"></i> 📦 Stock</h1>
+            <p>Escáner + Inventario + Precios</p>
         </div>
-        <div class="stats-badge" id="statsBadge">
-            <i class="fas fa-book"></i> <span id="bookCount">0</span> libros
-        </div>
+        <div class="stats-badge" id="statsBadge"><i class="fas fa-boxes"></i> <span id="bookCount">0</span> productos</div>
     </div>
 
-    <div class="two-col-grid">
-        <!-- Panel izquierdo: Escáner + lista de libros -->
+    <div class="three-col-grid">
+        <!-- PANEL IZQUIERDO: ESCÁNER + LISTA -->
         <div class="scanner-panel">
-            <h3 style="margin-bottom: 1rem;"><i class="fas fa-qrcode"></i> Escáner de códigos de barras</h3>
-            <div class="scanner-container">
-                <div id="scannerView"></div>
-            </div>
+            <h3 style="margin-bottom: 0.5rem;"><i class="fas fa-qrcode"></i> Escáner</h3>
+            <div class="scanner-container"><div id="scannerView"></div></div>
             <div class="scanner-controls">
-                <button id="startScannerBtn" class="btn btn-primary"><i class="fas fa-play"></i> Iniciar cámara</button>
+                <button id="startScannerBtn" class="btn btn-primary"><i class="fas fa-play"></i> Iniciar</button>
                 <button id="stopScannerBtn" class="btn btn-danger"><i class="fas fa-stop"></i> Detener</button>
             </div>
-            <div id="scanResult" class="scanned-badge">
-                <i class="fas fa-info-circle"></i> Escanea un código ISBN
+            <div id="scanResult" style="background:#2b7a7a20; padding:0.5rem; border-radius:1rem; text-align:center; font-size:0.75rem;">
+                <i class="fas fa-info-circle"></i> Escanea un código
             </div>
 
-            <hr style="margin: 1.2rem 0; border-color: #e2e8f0;">
-            <h3><i class="fas fa-book"></i> Mis libros <span id="bookCountInline"></span></h3>
-            <div id="bookList" class="book-list">
-                <div style="text-align: center; padding: 2rem;">Cargando...</div>
+            <hr style="margin: 1rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3><i class="fas fa-list"></i> Inventario</h3>
+                <select id="currencySelect" style="width: auto; padding: 0.3rem; border-radius: 2rem;">
+                    <option value="$">$ USD</option>
+                    <option value="€">€ EUR</option>
+                    <option value="£">£ GBP</option>
+                    <option value="¥">¥ JPY</option>
+                </select>
             </div>
-            <button id="exportBooksBtn" class="btn" style="width: 100%; margin-top: 1rem; background: #10b981; color: white;">
-                <i class="fas fa-download"></i> Exportar biblioteca (JSON)
-            </button>
+            
+            <!-- DASHBOARD -->
+            <div class="dashboard-stats">
+                <div><i class="fas fa-cubes"></i> <span id="totalProducts">0</span> productos</div>
+                <div><i class="fas fa-dollar-sign"></i> Valor total: <span id="totalValue">0</span> <span id="currencySymbol">$</span></div>
+                <div><i class="fas fa-chart-line"></i> Precio promedio: <span id="avgPrice">0</span> <span id="avgCurrencySymbol">$</span></div>
+            </div>
+
+            <div id="bookList" class="book-list">Cargando...</div>
+            <button id="exportBooksBtn" class="btn" style="width:100%; margin-top:0.8rem; background:#10b981; color:white;"><i class="fas fa-download"></i> Exportar JSON</button>
         </div>
 
-        <!-- Panel derecho: Formulario + código de barras generado -->
+        <!-- PANEL CENTRAL: CÓDIGO DE BARRAS GENERADO -->
         <div class="barcode-panel">
-            <h3><i class="fas fa-edit"></i> Registrar / Editar libro</h3>
-            <form id="bookForm">
-                <input type="hidden" id="bookId">
+            <div class="barcode-card">
+                <h4><i class="fas fa-tag"></i> Código de barras</h4>
+                <div id="barcodeContainer"><svg id="barcodeSvg"></svg></div>
+                <div style="margin-top: 0.8rem; display: flex; gap: 0.5rem;">
+                    <button id="downloadBarcodeBtn" class="btn btn-success" style="flex:1;"><i class="fas fa-download"></i> PNG</button>
+                    <button id="printBarcodeBtn" class="btn btn-warning" style="flex:1;"><i class="fas fa-print"></i> Imprimir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL DERECHO: FORMULARIO CON PRECIO Y STOCK -->
+        <div class="editor-panel">
+            <h3><i class="fas fa-edit"></i> <span id="formTitle">Registrar producto</span></h3>
+            <form id="productForm">
+                <input type="hidden" id="productId">
                 <div class="form-group">
-                    <label><i class="fas fa-barcode"></i> ISBN escaneado</label>
-                    <input type="text" id="isbnInput" placeholder="Aparecerá al escanear" readonly style="background:#f1f5f9;">
+                    <label><i class="fas fa-barcode"></i> Código (ISBN/EAN)</label>
+                    <input type="text" id="codeInput" placeholder="Escanea o escribe" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-heading"></i> Título *</label>
-                    <input type="text" id="titleInput" required placeholder="Ej: Cien años de soledad">
+                    <label><i class="fas fa-heading"></i> Nombre / Título *</label>
+                    <input type="text" id="nameInput" required placeholder="Ej: Cien años de soledad">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-user"></i> Autor *</label>
-                    <input type="text" id="authorInput" required placeholder="Gabriel García Márquez">
+                    <label><i class="fas fa-user"></i> Marca / Autor</label>
+                    <input type="text" id="brandInput" placeholder="Gabriel García Márquez">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-building"></i> Editorial</label>
-                    <input type="text" id="publisherInput" placeholder="Editorial">
+                    <label><i class="fas fa-dollar-sign"></i> Precio unitario <span id="priceSymbolLabel">($)</span></label>
+                    <input type="number" id="priceInput" step="0.01" placeholder="15.99">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-calendar"></i> Año</label>
-                    <input type="number" id="yearInput" placeholder="2024">
+                    <label><i class="fas fa-boxes"></i> Stock / Cantidad</label>
+                    <input type="number" id="stockInput" value="1" placeholder="Cantidad">
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        <i class="fas fa-save"></i> Guardar libro
-                    </button>
+                    <label><i class="fas fa-tags"></i> Categoría</label>
+                    <input type="text" id="categoryInput" placeholder="Libros, Electrónica, etc.">
                 </div>
-                <button type="button" id="clearFormBtn" class="btn" style="width: 100%; background: #e2e8f0; margin-top: 0.5rem;">
-                    <i class="fas fa-eraser"></i> Limpiar formulario
-                </button>
+                <button type="submit" class="btn btn-primary" style="width:100%;"><i class="fas fa-save"></i> Guardar producto</button>
+                <button type="button" id="clearFormBtn" class="btn" style="width:100%; margin-top:0.5rem; background:#e2e8f0;"><i class="fas fa-eraser"></i> Limpiar</button>
             </form>
-
-            <hr style="margin: 1.5rem 0;">
-
-            <h4><i class="fas fa-barcode"></i> Código de barras del libro</h4>
-            <div id="barcodeContainer" style="background: white; padding: 1rem; border-radius: 1rem; text-align: center; margin-top: 0.5rem;">
-                <svg id="barcodeSvg"></svg>
-            </div>
-            <div style="margin-top: 0.8rem; display: flex; gap: 0.5rem;">
-                <button id="downloadBarcodeBtn" class="btn btn-success" style="flex:1;"><i class="fas fa-download"></i> PNG</button>
-                <button id="printBarcodeBtn" class="btn btn-warning" style="flex:1;"><i class="fas fa-print"></i> Imprimir</button>
-            </div>
         </div>
     </div>
 </div>
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
-    // Base de datos
-    let books = [];
-    let currentBookId = null;
+    // ========== CONFIGURACIÓN ==========
+    let products = [];
+    let currentProductId = null;
     let scannerActive = false;
+    let currencySymbol = "$";
 
-    // Elementos DOM
+    // DOM elements
     const scannerView = document.getElementById('scannerView');
     const startBtn = document.getElementById('startScannerBtn');
     const stopBtn = document.getElementById('stopScannerBtn');
     const scanResultDiv = document.getElementById('scanResult');
-    const isbnInput = document.getElementById('isbnInput');
-    const titleInput = document.getElementById('titleInput');
-    const authorInput = document.getElementById('authorInput');
-    const publisherInput = document.getElementById('publisherInput');
-    const yearInput = document.getElementById('yearInput');
-    const bookIdInput = document.getElementById('bookId');
-    const bookForm = document.getElementById('bookForm');
+    const codeInput = document.getElementById('codeInput');
+    const nameInput = document.getElementById('nameInput');
+    const brandInput = document.getElementById('brandInput');
+    const priceInput = document.getElementById('priceInput');
+    const stockInput = document.getElementById('stockInput');
+    const categoryInput = document.getElementById('categoryInput');
+    const productIdInput = document.getElementById('productId');
+    const productForm = document.getElementById('productForm');
     const clearFormBtn = document.getElementById('clearFormBtn');
     const bookListDiv = document.getElementById('bookList');
     const exportBooksBtn = document.getElementById('exportBooksBtn');
     const bookCountSpan = document.getElementById('bookCount');
-    const bookCountInline = document.getElementById('bookCountInline');
-    const downloadBarcodeBtn = document.getElementById('downloadBarcodeBtn');
-    const printBarcodeBtn = document.getElementById('printBarcodeBtn');
+    const totalProductsSpan = document.getElementById('totalProducts');
+    const totalValueSpan = document.getElementById('totalValue');
+    const avgPriceSpan = document.getElementById('avgPrice');
+    const currencySelect = document.getElementById('currencySelect');
+    const priceSymbolLabel = document.getElementById('priceSymbolLabel');
+    const currencySymbolSpan = document.getElementById('currencySymbol');
+    const avgCurrencySymbolSpan = document.getElementById('avgCurrencySymbol');
 
     // Toast
     function showToast(msg, isError = false) {
@@ -354,296 +223,244 @@
         setTimeout(() => toast.style.opacity = '0', 2500);
     }
 
-    // Cargar datos
-    function loadBooks() {
-        const stored = localStorage.getItem('codeforge_scanner_library');
+    // Cargar datos desde localStorage
+    function loadProducts() {
+        const stored = localStorage.getItem('stock_inventory_v2');
         if (stored) {
-            books = JSON.parse(stored);
+            products = JSON.parse(stored);
         } else {
-            // Libros demo
-            books = [
-                { id: '1', title: 'Cien años de soledad', author: 'Gabriel García Márquez', isbn: '9788437604947', publisher: 'Debolsillo', year: '1967' },
-                { id: '2', title: 'El Alquimista', author: 'Paulo Coelho', isbn: '9788408045391', publisher: 'Planeta', year: '1988' }
+            // Datos de ejemplo
+            products = [
+                { id: '1', name: 'Cien años de soledad', brand: 'Gabriel García Márquez', code: '9788437604947', price: 15.99, stock: 5, category: 'libros', dateAdded: '2024-01-15' },
+                { id: '2', name: 'El Alquimista', brand: 'Paulo Coelho', code: '9788408045391', price: 12.50, stock: 3, category: 'libros', dateAdded: '2024-01-15' },
+                { id: '3', name: 'Teclado mecánico', brand: 'Logitech', code: '123456789012', price: 45.00, stock: 2, category: 'electrónica', dateAdded: '2024-01-16' }
             ];
-            saveBooks();
+            saveProducts();
         }
-        updateBookList();
+        updateUI();
     }
 
-    function saveBooks() {
-        localStorage.setItem('codeforge_scanner_library', JSON.stringify(books));
+    function saveProducts() {
+        localStorage.setItem('stock_inventory_v2', JSON.stringify(products));
+        updateUI();
+    }
+
+    function updateUI() {
+        updateProductList();
         updateStats();
+        updateCurrencySymbolInUI();
     }
 
     function updateStats() {
-        bookCountSpan.innerText = books.length;
-        if (bookCountInline) bookCountInline.innerText = ` (${books.length})`;
+        const total = products.length;
+        const totalValue = products.reduce((sum, p) => sum + (p.price || 0) * (p.stock || 0), 0);
+        const avgPrice = total > 0 ? (products.reduce((sum, p) => sum + (p.price || 0), 0) / total) : 0;
+        
+        bookCountSpan.innerText = total;
+        if(totalProductsSpan) totalProductsSpan.innerText = total;
+        if(totalValueSpan) totalValueSpan.innerText = totalValue.toFixed(2);
+        if(avgPriceSpan) avgPriceSpan.innerText = avgPrice.toFixed(2);
     }
 
-    function updateBookList() {
-        if (books.length === 0) {
-            bookListDiv.innerHTML = '<div style="text-align: center; padding: 2rem; color: #94a3b8;"><i class="fas fa-book-open"></i><br>Sin libros aún.<br>¡Escanea uno!</div>';
+    function updateCurrencySymbolInUI() {
+        if(priceSymbolLabel) priceSymbolLabel.innerText = `(${currencySymbol})`;
+        if(currencySymbolSpan) currencySymbolSpan.innerText = currencySymbol;
+        if(avgCurrencySymbolSpan) avgCurrencySymbolSpan.innerText = currencySymbol;
+        updateProductList(); // refresh prices in list
+    }
+
+    function updateProductList() {
+        if (products.length === 0) {
+            bookListDiv.innerHTML = '<div style="text-align:center; padding:1rem;">📦 Sin productos</div>';
             return;
         }
-
-        bookListDiv.innerHTML = books.map(book => `
-            <div class="book-item" data-id="${book.id}">
-                <div class="book-title">📖 ${escapeHtml(book.title)}</div>
-                <div class="book-isbn">🔖 ${escapeHtml(book.isbn)}</div>
-                <div>✍️ ${escapeHtml(book.author)}</div>
-                <div style="margin-top: 6px;">
-                    <button class="edit-book-btn" data-id="${book.id}" style="background:#2b7a7a20; border:none; border-radius:12px; padding:4px 10px; cursor:pointer; margin-right:6px;">✏️ Editar</button>
-                    <button class="delete-book-btn" data-id="${book.id}" style="background:#ef444420; border:none; border-radius:12px; padding:4px 10px; cursor:pointer;">🗑️ Eliminar</button>
+        bookListDiv.innerHTML = products.map(p => `
+            <div class="book-item" data-id="${p.id}">
+                <div class="book-title">📦 ${escapeHtml(p.name)}</div>
+                <div class="book-price">💰 ${currencySymbol}${(p.price || 0).toFixed(2)} | Stock: ${p.stock || 0}</div>
+                <div style="font-size:0.7rem; color:#5b6e8c;">🔖 ${p.code}</div>
+                <div style="margin-top: 5px;">
+                    <button class="edit-product-btn" data-id="${p.id}" style="background:#2b7a7a20; border:none; border-radius:12px; padding:3px 8px; margin-right:5px;">✏️ Editar</button>
+                    <button class="delete-product-btn" data-id="${p.id}" style="background:#ef444420; border:none; border-radius:12px; padding:3px 8px;">🗑️ Eliminar</button>
                 </div>
             </div>
         `).join('');
 
-        // Eventos editar/eliminar
-        document.querySelectorAll('.edit-book-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.dataset.id;
-                editBookById(id);
-            });
+        document.querySelectorAll('.edit-product-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => { e.stopPropagation(); editProductById(btn.dataset.id); });
         });
-        document.querySelectorAll('.delete-book-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.dataset.id;
-                deleteBookById(id);
-            });
+        document.querySelectorAll('.delete-product-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => { e.stopPropagation(); deleteProductById(btn.dataset.id); });
         });
         document.querySelectorAll('.book-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('edit-book-btn') && !e.target.classList.contains('delete-book-btn')) {
-                    const id = item.dataset.id;
-                    selectBook(id);
+                if (!e.target.classList.contains('edit-product-btn') && !e.target.classList.contains('delete-product-btn')) {
+                    selectProduct(item.dataset.id);
                 }
             });
         });
     }
 
-    function selectBook(id) {
-        const book = books.find(b => b.id === id);
-        if (book) {
-            bookIdInput.value = book.id;
-            isbnInput.value = book.isbn;
-            titleInput.value = book.title;
-            authorInput.value = book.author;
-            publisherInput.value = book.publisher || '';
-            yearInput.value = book.year || '';
-            currentBookId = id;
-            generateBarcode(book.isbn);
-            showToast(`Libro seleccionado: ${book.title}`);
+    function selectProduct(id) {
+        const product = products.find(p => p.id === id);
+        if (product) {
+            productIdInput.value = product.id;
+            codeInput.value = product.code;
+            nameInput.value = product.name;
+            brandInput.value = product.brand || '';
+            priceInput.value = product.price || '';
+            stockInput.value = product.stock || 1;
+            categoryInput.value = product.category || '';
+            currentProductId = id;
+            generateBarcode(product.code);
+            showToast(`Seleccionado: ${product.name}`);
         }
     }
 
-    function editBookById(id) {
-        selectBook(id);
-    }
-
-    function deleteBookById(id) {
-        if (confirm('¿Eliminar este libro de tu biblioteca?')) {
-            books = books.filter(b => b.id !== id);
-            saveBooks();
-            if (currentBookId === id) {
-                clearForm();
-                document.getElementById('barcodeContainer').innerHTML = '<svg id="barcodeSvg"></svg>';
-            }
-            updateBookList();
-            showToast('Libro eliminado');
+    function editProductById(id) { selectProduct(id); }
+    
+    function deleteProductById(id) {
+        if (confirm('¿Eliminar este producto?')) {
+            products = products.filter(p => p.id !== id);
+            saveProducts();
+            if (currentProductId === id) clearForm();
+            showToast('Producto eliminado');
         }
     }
 
-    function saveBook(event) {
+    function saveProduct(event) {
         event.preventDefault();
-        const isbn = isbnInput.value.trim();
-        const title = titleInput.value.trim();
-        const author = authorInput.value.trim();
-        const publisher = publisherInput.value.trim();
-        const year = yearInput.value;
+        const code = codeInput.value.trim();
+        const name = nameInput.value.trim();
+        const brand = brandInput.value.trim();
+        const price = parseFloat(priceInput.value) || 0;
+        const stock = parseInt(stockInput.value) || 0;
+        const category = categoryInput.value.trim();
 
-        if (!isbn || !title || !author) {
-            showToast('ISBN, título y autor son obligatorios', true);
+        if (!code || !name) {
+            showToast('Código y nombre son obligatorios', true);
             return;
         }
 
-        const id = bookIdInput.value;
+        const id = productIdInput.value;
         if (id) {
-            // Actualizar
-            const index = books.findIndex(b => b.id === id);
+            const index = products.findIndex(p => p.id === id);
             if (index !== -1) {
-                books[index] = { ...books[index], title, author, isbn, publisher, year };
-                saveBooks();
-                showToast('Libro actualizado');
-                generateBarcode(isbn);
+                products[index] = { ...products[index], code, name, brand, price, stock, category, dateAdded: new Date().toISOString().slice(0,10) };
+                saveProducts();
+                showToast('Producto actualizado');
+                generateBarcode(code);
             }
         } else {
-            // Nuevo libro
             const newId = Date.now().toString();
-            books.push({ id: newId, title, author, isbn, publisher, year });
-            saveBooks();
-            showToast('Libro agregado');
-            bookIdInput.value = newId;
-            generateBarcode(isbn);
+            products.push({ id: newId, code, name, brand, price, stock, category, dateAdded: new Date().toISOString().slice(0,10) });
+            saveProducts();
+            showToast('Producto agregado');
+            productIdInput.value = newId;
+            generateBarcode(code);
         }
-        updateBookList();
-        clearForm(); // Limpia pero mantiene quizás el ISBN? mejor limpiar después de guardar
-        // Reseteamos el formulario excepto si queremos seguir agregando, pero limpiamos para próximo escaneo
+        updateUI();
         clearForm();
     }
 
     function clearForm() {
-        bookIdInput.value = '';
-        isbnInput.value = '';
-        titleInput.value = '';
-        authorInput.value = '';
-        publisherInput.value = '';
-        yearInput.value = '';
-        currentBookId = null;
+        productIdInput.value = '';
+        codeInput.value = '';
+        nameInput.value = '';
+        brandInput.value = '';
+        priceInput.value = '';
+        stockInput.value = '1';
+        categoryInput.value = '';
+        currentProductId = null;
         document.getElementById('barcodeContainer').innerHTML = '<svg id="barcodeSvg"></svg>';
     }
 
-    function generateBarcode(isbn) {
-        if (!isbn) return;
+    function generateBarcode(code) {
+        if (!code) return;
         const container = document.getElementById('barcodeContainer');
         container.innerHTML = '<svg id="barcodeSvg"></svg>';
         const svg = document.getElementById('barcodeSvg');
         try {
-            JsBarcode(svg, isbn, {
-                format: "CODE128",
-                width: 2,
-                height: 70,
-                lineColor: "#0a192f",
-                background: "#ffffff",
-                displayValue: true,
-                fontSize: 14
-            });
-        } catch(e) {
-            container.innerHTML = '<div style="color:red;">Error generando código</div>';
-        }
+            JsBarcode(svg, code, { format: "CODE128", width: 2, height: 70, lineColor: "#0a192f", background: "#ffffff", displayValue: true, fontSize: 14 });
+        } catch(e) { container.innerHTML = '<div style="color:red;">Error</div>'; }
     }
 
-    // Escáner QuaggaJS
+    // ESCÁNER
     function startScanner() {
         if (scannerActive) return;
         Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#scannerView'),
-                constraints: { facingMode: "environment" } // Cámara trasera
-            },
-            decoder: {
-                readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "code_39_reader"]
-            }
+            inputStream: { name: "Live", type: "LiveStream", target: scannerView, constraints: { facingMode: "environment" } },
+            decoder: { readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "code_39_reader"] }
         }, function(err) {
-            if (err) {
-                showToast("Error al iniciar cámara: " + err, true);
-                return;
-            }
+            if (err) { showToast("Error cámara: " + err, true); return; }
             Quagga.start();
             scannerActive = true;
-            showToast("Cámara activada. Enfoca el código de barras.");
+            showToast("Cámara activa. Enfoca un código.");
         });
-
         Quagga.onDetected(function(result) {
             let code = result.codeResult.code;
             if (code) {
-                // Detener escaneo tras detectar
-                Quagga.stop();
-                scannerActive = false;
-                scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Código escaneado: ${code}`;
-                isbnInput.value = code;
+                Quagga.stop(); scannerActive = false;
+                scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${code}`;
+                codeInput.value = code;
                 generateBarcode(code);
-                showToast(`ISBN detectado: ${code}`);
-                // Verificar si ya existe
-                const existing = books.find(b => b.isbn === code);
-                if (existing) {
-                    showToast(`El libro "${existing.title}" ya está registrado. Editando...`);
-                    selectBook(existing.id);
-                } else {
-                    clearForm();
-                    isbnInput.value = code;
-                    titleInput.focus();
-                }
+                const existing = products.find(p => p.code === code);
+                if (existing) { showToast(`Producto existente: ${existing.name}`); selectProduct(existing.id); }
+                else { clearForm(); codeInput.value = code; nameInput.focus(); }
             }
         });
     }
+    function stopScanner() { if (scannerActive) { Quagga.stop(); scannerActive = false; scanResultDiv.innerHTML = '<i class="fas fa-stop"></i> Cámara detenida'; showToast("Cámara detenida"); } }
 
-    function stopScanner() {
-        if (scannerActive) {
-            Quagga.stop();
-            scannerActive = false;
-            scanResultDiv.innerHTML = '<i class="fas fa-stop"></i> Cámara detenida';
-            showToast("Cámara detenida");
-        }
-    }
-
+    // DESCARGAR / IMPRIMIR
     async function downloadBarcode() {
         const container = document.getElementById('barcodeContainer');
-        if (!container.querySelector('svg')) {
-            showToast('No hay código generado', true);
-            return;
-        }
+        if (!container.querySelector('svg')) { showToast('No hay código', true); return; }
         const canvas = await html2canvas(container, { scale: 3 });
         const link = document.createElement('a');
-        link.download = `barcode_${isbnInput.value || 'libro'}.png`;
+        link.download = `codigo_${codeInput.value || 'producto'}.png`;
         link.href = canvas.toDataURL();
         link.click();
         showToast('Código descargado');
     }
-
     function printBarcode() {
         const container = document.getElementById('barcodeContainer');
-        if (!container.querySelector('svg')) {
-            showToast('No hay código para imprimir', true);
-            return;
-        }
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html><head><title>Imprimir código</title></head>
-            <body style="display:flex; justify-content:center; align-items:center; height:100vh;">
-                ${container.innerHTML}
-            </body></html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
+        if (!container.querySelector('svg')) { showToast('No hay código', true); return; }
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><title>Imprimir código</title></head><body style="display:flex; justify-content:center; align-items:center; height:100vh;">${container.innerHTML}</body></html>`);
+        win.document.close(); win.print();
     }
-
-    function exportBooks() {
-        const data = JSON.stringify(books, null, 2);
+    function exportProducts() {
+        const data = JSON.stringify(products, null, 2);
         const blob = new Blob([data], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'biblioteca_escaneada.json';
-        a.click();
+        a.href = url; a.download = `inventario_${new Date().toISOString().slice(0,10)}.json`; a.click();
         URL.revokeObjectURL(url);
-        showToast('Biblioteca exportada');
+        showToast('Inventario exportado');
+    }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // MONEDA
+    function updateCurrency() {
+        currencySymbol = currencySelect.value;
+        updateCurrencySymbolInUI();
+        updateStats();
+        showToast(`Moneda cambiada a ${currencySymbol}`);
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    // Event listeners
+    // EVENTOS
     startBtn.addEventListener('click', startScanner);
     stopBtn.addEventListener('click', stopScanner);
-    bookForm.addEventListener('submit', saveBook);
+    productForm.addEventListener('submit', saveProduct);
     clearFormBtn.addEventListener('click', clearForm);
     downloadBarcodeBtn.addEventListener('click', downloadBarcode);
     printBarcodeBtn.addEventListener('click', printBarcode);
-    exportBooksBtn.addEventListener('click', exportBooks);
+    exportBooksBtn.addEventListener('click', exportProducts);
+    currencySelect.addEventListener('change', updateCurrency);
 
-    // Inicializar
-    loadBooks();
+    // INICIALIZAR
+    loadProducts();
     clearForm();
 </script>
 </body>
