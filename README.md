@@ -70,7 +70,9 @@ Stock es una aplicación web **sin servidor** que te permite:
 ---
 
 ## 📁 Estructura del proyecto
+
 stock/
+
 ├── index.html          # Aplicación principal (todo-en-uno)
 ├── README.md           # Este archivo
 └── (sin dependencias externas, todo vía CDN)
@@ -88,6 +90,12 @@ stock/
   location: "Estante A2",            // Ubicación física
   dateAdded: "2024-01-15"            // Fecha de registro
 }
+---
+
+👤 Autor
+Juan Manuel Orellana
+---
+
 ## 📄 Licencia
 Distribuido bajo licencia MIT. Ver LICENSE para más información.
 
