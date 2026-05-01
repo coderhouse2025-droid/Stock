@@ -23,3 +23,71 @@ Stock es una aplicación web **sin servidor** que te permite:
 ---
 
 ## 🖼️ **Vista previa**
+
+
+
+---
+
+## ✨ **Características principales**
+
+| Módulo | Funcionalidad |
+|--------|---------------|
+| 🔍 **Escáner óptico** | Detecta códigos EAN-13, UPC, CODE128, CODE39 con cámara |
+| 📋 **CRUD completo** | Añade, edita, elimina y busca productos |
+| 💰 **Gestión de precios** | Asigna precio unitario, moneda configurable ($, €, £, ¥) |
+| 📊 **Dashboard** | Valor total del inventario y estadísticas automáticas |
+| 🏷️ **Generador de códigos** | Crea códigos de barras profesionales |
+| 💾 **Base de datos local** | Almacenamiento automático en `localStorage` |
+| 📤 **Exportación** | Respaldos en JSON para migrar o compartir |
+| 🖨️ **Impresión directa** | Genera etiquetas imprimibles con precio |
+| 📱 **Responsive** | Funciona en móvil, tablet y desktop |
+
+---
+
+## 🚀 **Casos de uso**
+
+| Caso | Descripción |
+|------|-------------|
+| 📚 **Librería personal** | 50+ libros escaneados con precio y valor total |
+| 🏪 **Pequeño comercio** | Inventario completo con precios y stock |
+| 🧾 **Facturación** | Base de datos precargada para futura app de facturación |
+| 🏭 **Almacén** | Control de entradas, salidas y valor de mercancía |
+| 🎮 **Coleccionistas** | Discos, videojuegos, figuras con valoración |
+
+---
+
+## 🛠️ **Tecnologías utilizadas**
+
+| Tecnología | Propósito |
+|------------|-----------|
+| **HTML5 / CSS3** | Estructura y diseño moderno (Glassmorphism) |
+| **JavaScript (ES6+)** | Lógica y manipulación del DOM |
+| **JsBarcode** | Generación vectorial de códigos de barras |
+| **QuaggaJS** | Escáner de códigos de barras por cámara |
+| **html2canvas** | Exportación de códigos a PNG |
+| **LocalStorage** | Persistencia de datos en el navegador |
+
+---
+
+## 📁 Estructura del proyecto
+stock/
+├── index.html          # Aplicación principal (todo-en-uno)
+├── README.md           # Este archivo
+└── (sin dependencias externas, todo vía CDN)
+
+---
+## 🗃️ Estructura de la base de datos
+{
+  id: "1234567890",
+  name: "Cien años de soledad",
+  brand: "Gabriel García Márquez",  // o autor/fabricante
+  code: "9788437604947",             // ISBN / código de barras
+  price: 15.99,                      // Precio unitario (número)
+  stock: 5,                          // Cantidad disponible
+  category: "libros",                // Para organización
+  location: "Estante A2",            // Ubicación física
+  dateAdded: "2024-01-15"            // Fecha de registro
+}
+## 📄 Licencia
+Distribuido bajo licencia MIT. Ver LICENSE para más información.
+
