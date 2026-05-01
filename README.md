@@ -79,7 +79,6 @@ stock/
 
 ---
 ## 🗃️ Estructura de la base de datos
-
 {
   id: "1234567890",
   name: "Cien años de soledad",
