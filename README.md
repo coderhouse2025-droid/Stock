@@ -91,6 +91,7 @@ stock/
   dateAdded: "2024-01-15"            // Fecha de registro
 }
 
+
 ---
 
 ## 👤 Autor
