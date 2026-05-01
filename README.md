@@ -79,6 +79,7 @@ stock/
 
 ---
 ## 🗃️ Estructura de la base de datos
+
 {
   id: "1234567890",
   name: "Cien años de soledad",
@@ -90,9 +91,10 @@ stock/
   location: "Estante A2",            // Ubicación física
   dateAdded: "2024-01-15"            // Fecha de registro
 }
+
 ---
 
-👤 Autor
+## 👤 Autor
 Juan Manuel Orellana
 ---
 
