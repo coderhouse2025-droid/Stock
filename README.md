@@ -79,8 +79,6 @@ stock/
 
 ---
 ## 🗃️ Estructura de la base de datos
-## 📁 Estructura de la base de datos
-
 ```js
 {
   id: "1234567890",
@@ -93,8 +91,6 @@ stock/
   location: "Estante A2",           // Ubicación física
   dateAdded: "2024-01-15"           // Fecha de registro
 }
-
-
 
 ---
 
