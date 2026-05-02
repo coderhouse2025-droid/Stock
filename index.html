@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>📦 Stock Manager - Sincronización automática</title>
+    <title>📦 Stock Manager - Sincronización fiable</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -75,7 +75,6 @@
             gap: 10px;
         }
 
-        /* Escáner */
         .scanner-box {
             background: #1a1a2e;
             border-radius: 16px;
@@ -99,7 +98,6 @@
             margin-top: 12px;
         }
 
-        /* Lista de productos */
         .product-item {
             background: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -124,7 +122,6 @@
         .delete-product { color: #dc2626; }
         .delete-product:hover { background: #fee2e2; }
 
-        /* Formulario flotante */
         .fab-button {
             position: fixed;
             bottom: 30px;
@@ -199,6 +196,17 @@
         .sync-buttons, .local-actions { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
         .sync-buttons button, .local-actions button, .local-actions label { flex: 1; text-align: center; }
         .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-top: 8px; cursor: pointer; }
+        .gist-info {
+            font-size: 11px;
+            background: #f1f3f5;
+            padding: 6px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
         hr { margin: 20px 0; border: none; border-top: 1px solid #e9ecef; }
         .toast-msg {
             position: fixed;
@@ -231,7 +239,6 @@
     </div>
 
     <div class="two-col-grid">
-        <!-- PANEL IZQUIERDO -->
         <div class="panel-left">
             <h3><i class="fas fa-qrcode"></i> Escáner / Entrada</h3>
             <div class="scanner-box">
@@ -258,8 +265,12 @@
                 <button id="syncToCloudBtn" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Guardar en nube</button>
                 <button id="syncFromCloudBtn" class="btn btn-outline"><i class="fas fa-cloud-download-alt"></i> Cargar desde nube</button>
             </div>
+            <div class="gist-info">
+                <span><i class="fab fa-github"></i> Gist ID: <span id="gistIdDisplay">---</span></span>
+                <button id="resetGistBtn" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 12px;"><i class="fas fa-trash"></i> Resetear Gist</button>
+            </div>
             <label class="checkbox-label">
-                <input type="checkbox" id="rememberTokenCheckbox"> <i class="fas fa-memory"></i> Recordar token (guardar en este navegador)
+                <input type="checkbox" id="rememberTokenCheckbox"> <i class="fas fa-memory"></i> Recordar token
             </label>
             <label class="checkbox-label">
                 <input type="checkbox" id="autoSyncCheckbox"> <i class="fas fa-sync-alt"></i> Sincronizar automáticamente al abrir
@@ -275,7 +286,6 @@
             </div>
         </div>
 
-        <!-- PANEL DERECHO -->
         <div class="panel-right">
             <div class="barcode-section">
                 <h3><i class="fas fa-barcode"></i> Código de barras</h3>
@@ -341,7 +351,7 @@
 <div id="toastMsg" class="toast-msg"></div>
 
 <script>
-    // ---------- BASE DE DATOS Y CRUD ----------
+    // ---------- CONFIGURACIÓN ----------
     let products = [];
     let currentProductId = null;
     let html5QrCode = null;
@@ -381,16 +391,16 @@
     const rememberTokenCheckbox = document.getElementById('rememberTokenCheckbox');
     const autoSyncCheckbox = document.getElementById('autoSyncCheckbox');
     const cloudStatusDiv = document.getElementById('cloudStatus');
+    const gistIdDisplaySpan = document.getElementById('gistIdDisplay');
+    const resetGistBtn = document.getElementById('resetGistBtn');
 
     let savedToken = localStorage.getItem(TOKEN_KEY);
     let rememberToken = localStorage.getItem(REMEMBER_TOKEN_KEY) === 'true';
     let autoSync = localStorage.getItem(AUTO_SYNC_KEY) === 'true';
 
-    // Cargar preferencias de checkboxes
     rememberTokenCheckbox.checked = rememberToken;
     autoSyncCheckbox.checked = autoSync;
 
-    // Guardar cambios de checkboxes
     rememberTokenCheckbox.addEventListener('change', () => {
         rememberToken = rememberTokenCheckbox.checked;
         localStorage.setItem(REMEMBER_TOKEN_KEY, rememberToken);
@@ -399,6 +409,20 @@
     autoSyncCheckbox.addEventListener('change', () => {
         autoSync = autoSyncCheckbox.checked;
         localStorage.setItem(AUTO_SYNC_KEY, autoSync);
+    });
+
+    function updateGistIdDisplay() {
+        const gistId = localStorage.getItem(GIST_ID_KEY);
+        gistIdDisplaySpan.textContent = gistId ? gistId.substring(0, 8) + '...' : 'ninguno';
+    }
+
+    resetGistBtn.addEventListener('click', () => {
+        if (confirm('¿Eliminar el Gist ID guardado? Luego podrás crear uno nuevo al guardar.')) {
+            localStorage.removeItem(GIST_ID_KEY);
+            updateGistIdDisplay();
+            cloudStatusDiv.innerHTML = '<i class="fab fa-github"></i> Gist ID eliminado';
+            showToast('Gist ID reseteado');
+        }
     });
 
     function showToast(msg, isError = false) {
@@ -421,7 +445,7 @@
             saveProducts();
         }
         renderProductList();
-        // Sincronización automática si está habilitada y hay token guardado
+        updateGistIdDisplay();
         if (autoSync && savedToken) {
             setTimeout(() => syncFromCloudWithToken(savedToken), 500);
         }
@@ -571,7 +595,7 @@
         } else { showToast("Ingresa un código válido", true); }
     }
 
-    // ----- Sincronización con gestión de token -----
+    // ----- Sincronización -----
     async function syncToCloud() {
         let token = savedToken;
         if (!token || !rememberToken) {
@@ -601,10 +625,17 @@
             }
             if (response.ok) {
                 const result = await response.json();
-                if (!gistId) localStorage.setItem(GIST_ID_KEY, result.id);
-                cloudStatusDiv.innerHTML = `<i class="fab fa-github"></i> ✅ Guardado en nube (${new Date().toLocaleTimeString()})`;
+                if (!gistId) {
+                    localStorage.setItem(GIST_ID_KEY, result.id);
+                    updateGistIdDisplay();
+                }
+                cloudStatusDiv.innerHTML = `<i class="fab fa-github"></i> ✅ Guardado en nube (${new Date().toLocaleTimeString()}) - Gist: ${result.id.substring(0,8)}`;
                 showToast("Datos guardados en la nube");
-            } else { showToast("Error al guardar", true); }
+            } else {
+                const errorText = await response.text();
+                console.error(errorText);
+                showToast("Error al guardar: " + response.status, true);
+            }
         } catch(e) { showToast("Error de conexión", true); }
     }
 
@@ -623,7 +654,7 @@
 
     async function syncFromCloudWithToken(token) {
         const gistId = localStorage.getItem(GIST_ID_KEY);
-        if (!gistId) { cloudStatusDiv.innerHTML = '<i class="fab fa-github"></i> ❌ No hay respaldo previo. Primero guarda desde un dispositivo.'; showToast("No hay respaldo previo", true); return; }
+        if (!gistId) { cloudStatusDiv.innerHTML = '<i class="fab fa-github"></i> ❌ No hay Gist ID guardado. Primero guarda desde algún dispositivo.'; showToast("No hay Gist para recuperar", true); return; }
         try {
             const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${token}` } });
             if (response.ok) {
@@ -639,7 +670,9 @@
                         clearForm();
                     } else throw new Error();
                 } else throw new Error();
-            } else { throw new Error(); }
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
         } catch(e) { cloudStatusDiv.innerHTML = '<i class="fab fa-github"></i> ❌ Error al recuperar'; showToast("Error al recuperar datos", true); }
     }
 
