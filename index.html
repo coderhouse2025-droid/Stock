@@ -10,8 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <!-- Instascan: mejor para móviles -->
-    <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+    <!-- Tesseract.js para OCR desde imagen -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -62,32 +62,11 @@
             gap: 10px;
         }
         
-        .scanner-box {
-            background: #1a1a2e;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 16px;
-            min-height: 260px;
-            position: relative;
-        }
-        
-        #scannerView {
-            width: 100%;
-            min-height: 260px;
-            background: #000;
-        }
-        
-        video {
-            width: 100% !important;
-            height: auto !important;
-            object-fit: cover;
-        }
-        
         .scanner-buttons { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
         .manual-input { margin-top: 12px; }
         .manual-input label { font-size: 12px; color: #6c757d; display: block; margin-bottom: 6px; }
         .manual-input-row { display: flex; gap: 8px; }
-        .manual-input-row input { flex: 1; padding: 10px 14px; border: 1px solid #dee2e6; border-radius: 12px; font-family: monospace; }
+        .manual-input-row input { flex: 1; padding: 10px 14px; border: 1px solid #dee2e6; border-radius: 12px; font-family: monospace; font-size: 16px; }
         
         .scan-info {
             background: #e8f4f8;
@@ -101,7 +80,7 @@
         
         .product-list-container {
             margin-top: 20px;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
             border-top: 1px solid #e9ecef;
             padding-top: 15px;
@@ -203,6 +182,13 @@
             font-size: 14px;
         }
         
+        .image-preview {
+            display: none;
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 12px;
+        }
+        
         @media (max-width: 900px) {
             .three-col-grid { grid-template-columns: 1fr; }
             .panel-left, .panel-center { border-right: none; border-bottom: 1px solid #e9ecef; }
@@ -220,17 +206,15 @@
     <div class="three-col-grid">
         <!-- PANEL IZQUIERDO -->
         <div class="panel panel-left">
-            <h3><i class="fas fa-qrcode"></i> Escáner</h3>
-            <div class="scanner-box">
-                <video id="scannerView" playsinline></video>
-            </div>
+            <h3><i class="fas fa-qrcode"></i> Escáner / Entrada</h3>
+            
             <div class="scanner-buttons">
-                <button id="startScannerBtn" class="btn btn-primary"><i class="fas fa-play"></i> Iniciar cámara</button>
-                <button id="stopScannerBtn" class="btn btn-secondary"><i class="fas fa-stop"></i> Detener</button>
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+                <button id="openCameraBtn" class="btn btn-primary"><i class="fas fa-camera"></i> 📷 Tomar foto al código</button>
             </div>
             
             <div class="manual-input">
-                <label><i class="fas fa-keyboard"></i> o ingresa el código manualmente</label>
+                <label><i class="fas fa-keyboard"></i> o escribe el código manualmente</label>
                 <div class="manual-input-row">
                     <input type="text" id="manualCodeInput" placeholder="Ej: 9788437604947">
                     <button id="applyManualCodeBtn" class="btn btn-outline"><i class="fas fa-arrow-right"></i></button>
@@ -238,8 +222,10 @@
             </div>
             
             <div id="scanResult" class="scan-info">
-                <i class="fas fa-info-circle"></i> Escanea o ingresa un código para buscar
+                <i class="fas fa-info-circle"></i> Escribe un código o toma foto del código de barras
             </div>
+            
+            <img id="imagePreview" class="image-preview" alt="Vista previa">
 
             <!-- LISTA DE PRODUCTOS -->
             <div class="product-list-container">
@@ -326,14 +312,12 @@
     // ========== CONFIGURACIÓN ==========
     let products = [];
     let currentProductId = null;
-    let scanner = null;
-    let isScanning = false;
-    const GIST_ID_KEY = 'stock_gist_id_v5';
+    const GIST_ID_KEY = 'stock_gist_id_v6';
 
     // DOM elements
-    const videoElement = document.getElementById('scannerView');
-    const startBtn = document.getElementById('startScannerBtn');
-    const stopBtn = document.getElementById('stopScannerBtn');
+    const openCameraBtn = document.getElementById('openCameraBtn');
+    const cameraInput = document.getElementById('cameraInput');
+    const imagePreview = document.getElementById('imagePreview');
     const manualCodeInput = document.getElementById('manualCodeInput');
     const applyManualCodeBtn = document.getElementById('applyManualCodeBtn');
     const scanResultDiv = document.getElementById('scanResult');
@@ -366,7 +350,7 @@
 
     // ========== CRUD ==========
     function loadProducts() {
-        const stored = localStorage.getItem('stock_manager_v6');
+        const stored = localStorage.getItem('stock_manager_v7');
         if (stored) {
             products = JSON.parse(stored);
         } else {
@@ -380,7 +364,7 @@
     }
 
     function saveProducts() {
-        localStorage.setItem('stock_manager_v6', JSON.stringify(products));
+        localStorage.setItem('stock_manager_v7', JSON.stringify(products));
         renderProductList();
     }
 
@@ -477,60 +461,61 @@
         catch(e) { container.innerHTML = '<div class="barcode-placeholder">Error generando código</div>'; }
     }
 
-    // ========== ESCÁNER CON INSTASCAN ==========
-    async function startScanner() {
-        if (isScanning) { showToast("El escáner ya está activo"); return; }
-        
-        scanResultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Solicitando permisos de cámara...';
-        
-        try {
-            scanner = new Instascan.Scanner({ video: videoElement, mirror: false, backgroundScan: false });
-            
-            scanner.addListener('scan', function(content) {
-                if (content && content.length > 5) {
-                    stopScanner();
-                    scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${content}`;
-                    codeInput.value = content;
-                    generateBarcode(content);
-                    const existing = products.find(p => p.code === content);
-                    if (existing) {
-                        fillFormWithProduct(existing);
-                    } else {
-                        clearForm();
-                        codeInput.value = content;
-                        nameInput.focus();
-                        showToast("Código detectado. Completa el formulario.");
-                    }
-                }
-            });
-            
-            const cameras = await Instascan.Camera.getCameras();
-            if (cameras.length === 0) {
-                throw new Error("No se encontraron cámaras");
-            }
-            
-            // Usar cámara trasera si existe, si no la primera disponible
-            const backCamera = cameras.find(cam => cam.name.toLowerCase().includes('back') || cam.name.toLowerCase().includes('rear'));
-            const selectedCamera = backCamera || cameras[0];
-            
-            await scanner.start(selectedCamera);
-            isScanning = true;
-            scanResultDiv.innerHTML = '<i class="fas fa-video"></i> Cámara activa. Acerca el código lentamente.';
-            showToast("Cámara activada correctamente");
-        } catch (err) {
-            console.error(err);
-            scanResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al iniciar cámara. Prueba escribir manualmente.';
-            showToast("No se pudo acceder a la cámara. Verifica los permisos.", true);
-        }
+    // ========== TOMAR FOTO Y EXTRAER TEXTO (OCR) ==========
+    function openCamera() {
+        cameraInput.click();
     }
 
-    function stopScanner() {
-        if (scanner && isScanning) {
-            scanner.stop();
-            isScanning = false;
-            scanResultDiv.innerHTML = '<i class="fas fa-info-circle"></i> Escanea o ingresa un código para buscar';
-            showToast("Cámara detenida");
+    async function processImage(file) {
+        if (!file) return;
+        
+        const imgUrl = URL.createObjectURL(file);
+        imagePreview.src = imgUrl;
+        imagePreview.style.display = 'block';
+        scanResultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Leyendo código de la imagen...';
+        
+        try {
+            // Usar Tesseract para extraer texto de la imagen
+            const { data: { text } } = await Tesseract.recognize(file, 'eng', {
+                logger: m => console.log(m)
+            });
+            
+            // Buscar números en el texto extraído (códigos de barras suelen ser números)
+            const numbers = text.match(/\d{8,14}/g);
+            let detectedCode = null;
+            
+            if (numbers && numbers.length > 0) {
+                // Tomar el número más largo que parece ISBN/código de barras
+                detectedCode = numbers.sort((a,b) => b.length - a.length)[0];
+            }
+            
+            if (detectedCode && detectedCode.length >= 8) {
+                scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Código detectado: ${detectedCode}`;
+                codeInput.value = detectedCode;
+                generateBarcode(detectedCode);
+                const existing = products.find(p => p.code === detectedCode);
+                if (existing) {
+                    fillFormWithProduct(existing);
+                } else {
+                    clearForm();
+                    codeInput.value = detectedCode;
+                    nameInput.focus();
+                    showToast("Código detectado. Completa el formulario.");
+                }
+            } else {
+                scanResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No se pudo leer el código. Escríbelo manualmente.';
+                showToast("No se detectó un código válido en la imagen", true);
+            }
+        } catch (err) {
+            console.error(err);
+            scanResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al leer la imagen. Escríbelo manualmente.';
+            showToast("Error al procesar la imagen", true);
         }
+        
+        setTimeout(() => {
+            imagePreview.style.display = 'none';
+            URL.revokeObjectURL(imgUrl);
+        }, 5000);
     }
 
     function applyManualCode() {
@@ -630,8 +615,8 @@
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
 
     // EVENTOS
-    startBtn.addEventListener('click', startScanner);
-    stopBtn.addEventListener('click', stopScanner);
+    openCameraBtn.addEventListener('click', openCamera);
+    cameraInput.addEventListener('change', (e) => { if(e.target.files[0]) processImage(e.target.files[0]); e.target.value = ''; });
     applyManualCodeBtn.addEventListener('click', applyManualCode);
     manualCodeInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') applyManualCode(); });
     productForm.addEventListener('submit', saveProduct);
@@ -639,14 +624,4 @@
     syncToCloudBtn.addEventListener('click', syncToCloud);
     syncFromCloudBtn.addEventListener('click', syncFromCloud);
     exportExcelBtn.addEventListener('click', exportToExcel);
-    exportPdfBtn.addEventListener('click', exportToPdf);
-    downloadBarcodeBtn.addEventListener('click', downloadBarcode);
-    printBarcodeBtn.addEventListener('click', printBarcode);
-    importFileInput.addEventListener('change', (e) => { if(e.target.files[0]) importProducts(e.target.files[0]); e.target.value = ''; });
-
-    // INICIALIZAR
-    loadProducts();
-    clearForm();
-</script>
-</body>
-</html>
+    exportP
