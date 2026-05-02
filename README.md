@@ -24,6 +24,7 @@ Stock es una aplicación web **sin servidor** que te permite:
 
 ## 🖼️ **Vista previa**
 
+<img width="1795" height="1010" alt="image" src="https://github.com/user-attachments/assets/1f1dad9f-d02a-4427-8376-bfaa3d217d17" />
 
 
 ---
