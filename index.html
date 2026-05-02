@@ -6,15 +6,12 @@
     <title>📦 Stock Manager - Gestión de inventario</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- JsBarcode para generar códigos -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <!-- html2canvas para PNG -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <!-- Quagga (versión que SÍ funcionaba) -->
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <!-- Html5Qrcode (mejor para enfoque y zoom) -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -39,7 +36,6 @@
         .header h1 { font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
         .header p { font-size: 14px; opacity: 0.8; margin-top: 5px; }
 
-        /* Layout 2 columnas */
         .two-col-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -80,17 +76,18 @@
             gap: 10px;
         }
 
-        /* Escáner */
+        /* Escáner con tamaño controlado */
         .scanner-box {
             background: #1a1a2e;
             border-radius: 16px;
             overflow: hidden;
             margin-bottom: 16px;
-            min-height: 240px;
+            min-height: 260px;
+            position: relative;
         }
         #scannerView {
             width: 100%;
-            min-height: 240px;
+            min-height: 260px;
             background: #000;
         }
         .scanner-buttons { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -346,11 +343,11 @@
     // ---------- BASE DE DATOS Y CRUD ----------
     let products = [];
     let currentProductId = null;
-    let scannerActive = false;    // para Quagga
-    const GIST_ID_KEY = 'stock_gist_id_final';
+    let html5QrCode = null;
+    let isScanning = false;
+    const GIST_ID_KEY = 'stock_gist_id_final2';
 
     // Elementos DOM
-    const scannerView = document.getElementById('scannerView');
     const startBtn = document.getElementById('startScannerBtn');
     const stopBtn = document.getElementById('stopScannerBtn');
     const manualCodeInput = document.getElementById('manualCodeInput');
@@ -387,7 +384,7 @@
     }
 
     function loadProducts() {
-        const stored = localStorage.getItem('stock_manager_final');
+        const stored = localStorage.getItem('stock_manager_final2');
         if (stored) {
             products = JSON.parse(stored);
         } else {
@@ -401,7 +398,7 @@
     }
 
     function saveProducts() {
-        localStorage.setItem('stock_manager_final', JSON.stringify(products));
+        localStorage.setItem('stock_manager_final2', JSON.stringify(products));
         renderProductList();
     }
 
@@ -487,7 +484,6 @@
         stockInput.value = '1';
         categoryInput.value = '';
         currentProductId = null;
-        // No limpiamos el código de barras visual a menos que se quiera
     }
 
     function generateBarcode(code) {
@@ -499,52 +495,69 @@
         catch(e) { container.innerHTML = '<div class="barcode-placeholder">Error generando código</div>'; }
     }
 
-    // ----- ESCÁNER CON QUAGGA (VERSIÓN QUE SÍ FUNCIONABA) -----
-    function startScanner() {
-        if (scannerActive) { showToast("El escáner ya está activo"); return; }
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: scannerView,
-                constraints: { facingMode: "environment", width: { min: 640, ideal: 1280 }, height: { min: 480, ideal: 720 } }
-            },
-            decoder: { readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "code_39_reader"] },
-            locate: true
-        }, function(err) {
-            if (err) { showToast("Error al iniciar cámara. Prueba escribir manualmente.", true); return; }
-            Quagga.start();
-            scannerActive = true;
-            scanResultDiv.innerHTML = '<i class="fas fa-video"></i> Cámara activa. Enfoca el código lentamente.';
-            showToast("Cámara activada");
-        });
-        Quagga.onDetected(function(result) {
-            let code = result.codeResult.code;
-            if (code && code.length > 5) {
-                Quagga.stop();
-                scannerActive = false;
-                scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${code}`;
-                codeInput.value = code;
-                generateBarcode(code);
-                const existing = products.find(p => p.code === code);
-                if (existing) {
-                    fillFormWithProduct(existing);
-                    productFormPanel.style.display = 'block';
-                } else {
-                    clearForm();
-                    codeInput.value = code;
-                    productFormPanel.style.display = 'block';
-                    nameInput.focus();
-                    showToast("Código detectado. Completa el formulario.");
+    // ----- ESCÁNER CON HTML5QRCODE (VERSIÓN PRECISA) -----
+    async function startScanner() {
+        if (isScanning) { showToast("El escáner ya está activo"); return; }
+        
+        scanResultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Solicitando cámara...';
+        const scannerContainer = document.getElementById('scannerView');
+        scannerContainer.innerHTML = ''; // Limpiar por si había algo
+        
+        html5QrCode = new Html5Qrcode("scannerView");
+        const config = {
+            fps: 15,
+            qrbox: { width: 250, height: 100 },  // Área de escaneo pequeña para forzar acercamiento
+            aspectRatio: 1.333,
+            showTorchButtonIfSupported: true,
+            rememberLastCameraUsed: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        };
+        
+        try {
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    if (decodedText && decodedText.length > 5) {
+                        stopScanner();
+                        scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${decodedText}`;
+                        codeInput.value = decodedText;
+                        generateBarcode(decodedText);
+                        const existing = products.find(p => p.code === decodedText);
+                        if (existing) {
+                            fillFormWithProduct(existing);
+                            productFormPanel.style.display = 'block';
+                        } else {
+                            clearForm();
+                            codeInput.value = decodedText;
+                            productFormPanel.style.display = 'block';
+                            nameInput.focus();
+                            showToast("Código detectado. Completa el formulario.");
+                        }
+                    }
+                },
+                (errorMessage) => {
+                    // No mostrar errores continuos para no molestar
+                    // console.log(errorMessage);
                 }
-            }
-        });
+            );
+            isScanning = true;
+            scanResultDiv.innerHTML = '<i class="fas fa-video"></i> Cámara activa. Acerca el código al recuadro.';
+            showToast("Cámara activada - acerca el código al recuadro pequeño");
+        } catch (err) {
+            console.error(err);
+            scanResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al iniciar cámara. Usa escritura manual.';
+            showToast("No se pudo acceder a la cámara. Verifica permisos.", true);
+        }
     }
 
-    function stopScanner() {
-        if (scannerActive) {
-            Quagga.stop();
-            scannerActive = false;
+    async function stopScanner() {
+        if (html5QrCode && isScanning) {
+            try {
+                await html5QrCode.stop();
+                html5QrCode.clear();
+            } catch(e) {}
+            isScanning = false;
             scanResultDiv.innerHTML = '<i class="fas fa-info-circle"></i> Escanea o ingresa un código';
             showToast("Cámara detenida");
         }
