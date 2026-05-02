@@ -8,8 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- NUEVO: Html5Qrcode (mejor que Quagga) -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -28,7 +29,6 @@
             overflow: hidden;
         }
         
-        /* Header */
         .header {
             background: #0a192f;
             padding: 20px 30px;
@@ -36,21 +36,9 @@
             border-bottom: 3px solid #2b7a7a;
         }
         
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .header h1 { font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header p { font-size: 14px; opacity: 0.8; margin-top: 5px; }
         
-        .header p {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-        
-        /* Grid 3 columnas */
         .three-col-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -58,12 +46,7 @@
             min-height: 80vh;
         }
         
-        /* Panel común */
-        .panel {
-            padding: 24px;
-            background: white;
-        }
-        
+        .panel { padding: 24px; background: white; }
         .panel-left { border-right: 1px solid #e9ecef; }
         .panel-center { border-right: 1px solid #e9ecef; background: #fafbfc; }
         .panel-right { background: white; }
@@ -78,19 +61,19 @@
             gap: 10px;
         }
         
-        /* Escáner */
+        /* Escáner mejorado */
         .scanner-box {
             background: #1a1a2e;
             border-radius: 16px;
             overflow: hidden;
             margin-bottom: 16px;
-            min-height: 200px;
             position: relative;
+            min-height: 260px;
         }
         
         #scannerView {
             width: 100%;
-            min-height: 200px;
+            min-height: 260px;
             background: #000;
         }
         
@@ -98,32 +81,13 @@
             display: flex;
             gap: 12px;
             margin-bottom: 16px;
+            flex-wrap: wrap;
         }
         
-        .manual-input {
-            margin-top: 12px;
-        }
-        
-        .manual-input label {
-            font-size: 12px;
-            color: #6c757d;
-            display: block;
-            margin-bottom: 6px;
-        }
-        
-        .manual-input-row {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .manual-input-row input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
-            font-family: monospace;
-            font-size: 14px;
-        }
+        .manual-input { margin-top: 12px; }
+        .manual-input label { font-size: 12px; color: #6c757d; display: block; margin-bottom: 6px; }
+        .manual-input-row { display: flex; gap: 8px; }
+        .manual-input-row input { flex: 1; padding: 10px 14px; border: 1px solid #dee2e6; border-radius: 12px; font-family: monospace; font-size: 14px; }
         
         .scan-info {
             background: #e8f4f8;
@@ -135,7 +99,6 @@
             margin-top: 12px;
         }
         
-        /* Botones */
         .btn {
             padding: 10px 18px;
             border: none;
@@ -151,63 +114,22 @@
         
         .btn-primary { background: #0a192f; color: white; }
         .btn-primary:hover { background: #1a2a4f; transform: translateY(-1px); }
-        
         .btn-secondary { background: #e9ecef; color: #1a1a2e; border: 1px solid #dee2e6; }
         .btn-secondary:hover { background: #dee2e6; }
-        
         .btn-success { background: #10b981; color: white; }
-        .btn-success:hover { background: #059669; }
-        
         .btn-danger { background: #dc2626; color: white; }
-        .btn-danger:hover { background: #b91c1c; }
-        
         .btn-outline { background: transparent; border: 1px solid #2b7a7a; color: #2b7a7a; }
         .btn-outline:hover { background: #e8f4f8; }
         
-        /* Formulario */
-        .form-group {
-            margin-bottom: 18px;
-        }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: #495057; margin-bottom: 6px; }
+        .form-group label i { width: 20px; color: #2b7a7a; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #dee2e6; border-radius: 12px; font-size: 14px; font-family: monospace; }
+        .form-group input:focus { outline: none; border-color: #2b7a7a; box-shadow: 0 0 0 3px rgba(43,122,122,0.1); }
         
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 6px;
-        }
+        .form-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .form-actions button { flex: 1; }
         
-        .form-group label i {
-            width: 20px;
-            color: #2b7a7a;
-        }
-        
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: monospace;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #2b7a7a;
-            box-shadow: 0 0 0 3px rgba(43,122,122,0.1);
-        }
-        
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .form-actions button {
-            flex: 1;
-        }
-        
-        /* Código de barras */
         .barcode-placeholder {
             background: #f8f9fa;
             border-radius: 16px;
@@ -217,45 +139,15 @@
             border: 2px dashed #dee2e6;
         }
         
-        #barcodeContainer {
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-        }
+        #barcodeContainer { background: white; padding: 20px; border-radius: 16px; text-align: center; }
         
-        /* Sincronización */
-        .sync-section {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-        }
+        .sync-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e9ecef; }
+        .sync-buttons { display: flex; gap: 12px; margin-top: 12px; }
+        .sync-buttons button { flex: 1; }
+        .local-actions { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+        .local-actions button, .local-actions label { flex: 1; text-align: center; }
         
-        .sync-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        
-        .sync-buttons button {
-            flex: 1;
-        }
-        
-        .local-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        
-        .local-actions button {
-            flex: 1;
-        }
-        
-        hr {
-            margin: 20px 0;
-            border: none;
-            border-top: 1px solid #e9ecef;
-        }
+        hr { margin: 20px 0; border: none; border-top: 1px solid #e9ecef; }
         
         .toast-msg {
             position: fixed;
@@ -274,13 +166,8 @@
         }
         
         @media (max-width: 900px) {
-            .three-col-grid {
-                grid-template-columns: 1fr;
-            }
-            .panel-left, .panel-center {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-            }
+            .three-col-grid { grid-template-columns: 1fr; }
+            .panel-left, .panel-center { border-right: none; border-bottom: 1px solid #e9ecef; }
         }
     </style>
 </head>
@@ -293,7 +180,7 @@
     </div>
 
     <div class="three-col-grid">
-        <!-- PANEL IZQUIERDO: Escáner -->
+        <!-- PANEL IZQUIERDO: Escáner MEJORADO -->
         <div class="panel panel-left">
             <h3><i class="fas fa-qrcode"></i> Escáner</h3>
             <div class="scanner-box">
@@ -394,8 +281,9 @@
     // ========== CONFIGURACIÓN ==========
     let products = [];
     let currentProductId = null;
-    let scannerActive = false;
-    const GIST_ID_KEY = 'stock_gist_id_v2';
+    let html5QrCode = null;
+    let isScanning = false;
+    const GIST_ID_KEY = 'stock_gist_id_v3';
 
     // DOM elements
     const scannerView = document.getElementById('scannerView');
@@ -418,6 +306,8 @@
     const exportExcelBtn = document.getElementById('exportExcelBtn');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
     const importFileInput = document.getElementById('importFileInput');
+    const downloadBarcodeBtn = document.getElementById('downloadBarcodeBtn');
+    const printBarcodeBtn = document.getElementById('printBarcodeBtn');
 
     // Toast
     function showToast(msg, isError = false) {
@@ -430,7 +320,7 @@
 
     // Cargar datos
     function loadProducts() {
-        const stored = localStorage.getItem('stock_manager_v3');
+        const stored = localStorage.getItem('stock_manager_v4');
         if (stored) {
             products = JSON.parse(stored);
             showToast(`Cargados ${products.length} productos`);
@@ -438,21 +328,10 @@
             products = [];
             saveProducts();
         }
-        updateProductList();
     }
 
     function saveProducts() {
-        localStorage.setItem('stock_manager_v3', JSON.stringify(products));
-        updateProductList();
-    }
-
-    function updateProductList() {
-        // Actualiza la interfaz si hay algún selector de productos (placeholder)
-        const existingProduct = products.find(p => p.code === codeInput.value);
-        if (existingProduct && codeInput.value) {
-            document.getElementById('barcodeContainer').innerHTML = '<svg id="barcodeSvg"></svg>';
-            generateBarcode(existingProduct.code);
-        }
+        localStorage.setItem('stock_manager_v4', JSON.stringify(products));
     }
 
     function saveProduct(event) {
@@ -511,51 +390,85 @@
         }
     }
 
-    // ESCÁNER
-    function startScanner() {
-        if (scannerActive) return;
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: scannerView,
-                constraints: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
-            },
-            decoder: { readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "code_39_reader"] }
-        }, function(err) {
-            if (err) { showToast("Error al iniciar cámara. Prueba escribir manualmente.", true); return; }
-            Quagga.start();
-            scannerActive = true;
-            scanResultDiv.innerHTML = '<i class="fas fa-video"></i> Cámara activa. Enfoca el código lentamente.';
-        });
-        Quagga.onDetected(function(result) {
-            let code = result.codeResult.code;
-            if (code && code.length > 5) {
-                Quagga.stop(); scannerActive = false;
-                scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${code}`;
-                codeInput.value = code;
-                generateBarcode(code);
-                const existing = products.find(p => p.code === code);
-                if (existing) {
-                    showToast(`Producto existente: ${existing.name}`);
-                    productIdInput.value = existing.id;
-                    nameInput.value = existing.name;
-                    brandInput.value = existing.brand || '';
-                    priceInput.value = existing.price || '';
-                    stockInput.value = existing.stock || 1;
-                    categoryInput.value = existing.category || '';
-                } else {
-                    clearForm();
-                    codeInput.value = code;
-                    nameInput.focus();
-                    showToast("Código detectado. Completa el formulario.");
-                }
-            }
-        });
+    function fillFormWithProduct(product) {
+        productIdInput.value = product.id;
+        codeInput.value = product.code;
+        nameInput.value = product.name;
+        brandInput.value = product.brand || '';
+        priceInput.value = product.price || '';
+        stockInput.value = product.stock || 1;
+        categoryInput.value = product.category || '';
+        generateBarcode(product.code);
+        showToast(`Producto cargado: ${product.name}`);
     }
 
-    function stopScanner() {
-        if (scannerActive) { Quagga.stop(); scannerActive = false; scanResultDiv.innerHTML = '<i class="fas fa-info-circle"></i> Escanea o ingresa un código para buscar'; showToast("Cámara detenida"); }
+    // ========== NUEVO ESCÁNER CON HTML5QRCODE (MÁS NITIDO) ==========
+    async function startScanner() {
+        if (isScanning) {
+            showToast("El escáner ya está activo");
+            return;
+        }
+        
+        scanResultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando cámara...';
+        
+        html5QrCode = new Html5Qrcode("scannerView");
+        
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 100 },
+            aspectRatio: 1.333,
+            showTorchButtonIfSupported: true,
+            rememberLastCameraUsed: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        };
+        
+        try {
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText, decodedResult) => {
+                    // Éxito al escanear
+                    if (decodedText && decodedText.length > 5) {
+                        stopScanner();
+                        scanResultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Escaneado: ${decodedText}`;
+                        codeInput.value = decodedText;
+                        generateBarcode(decodedText);
+                        
+                        const existing = products.find(p => p.code === decodedText);
+                        if (existing) {
+                            fillFormWithProduct(existing);
+                        } else {
+                            clearForm();
+                            codeInput.value = decodedText;
+                            nameInput.focus();
+                            showToast("Código detectado. Completa el formulario.");
+                        }
+                    }
+                },
+                (errorMessage) => {
+                    // Error de escaneo (no mostrar cada error, es normal mientras busca)
+                    // console.log(errorMessage);
+                }
+            );
+            isScanning = true;
+            scanResultDiv.innerHTML = '<i class="fas fa-video"></i> Cámara activa. Acerca el código lentamente.';
+            showToast("Cámara activada - acerca el código de barras");
+        } catch (err) {
+            scanResultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al iniciar cámara. Prueba escribir manualmente.';
+            showToast("No se pudo acceder a la cámara. Verifica los permisos.", true);
+        }
+    }
+
+    async function stopScanner() {
+        if (html5QrCode && isScanning) {
+            try {
+                await html5QrCode.stop();
+                html5QrCode.clear();
+            } catch(e) {}
+            isScanning = false;
+            scanResultDiv.innerHTML = '<i class="fas fa-info-circle"></i> Escanea o ingresa un código para buscar';
+            showToast("Cámara detenida");
+        }
     }
 
     function applyManualCode() {
@@ -565,13 +478,7 @@
             generateBarcode(code);
             const existing = products.find(p => p.code === code);
             if (existing) {
-                showToast(`Producto existente: ${existing.name}`);
-                productIdInput.value = existing.id;
-                nameInput.value = existing.name;
-                brandInput.value = existing.brand || '';
-                priceInput.value = existing.price || '';
-                stockInput.value = existing.stock || 1;
-                categoryInput.value = existing.category || '';
+                fillFormWithProduct(existing);
             } else {
                 clearForm();
                 codeInput.value = code;
@@ -586,7 +493,7 @@
 
     // Sincronización con GitHub Gist
     async function syncToCloud() {
-        const token = prompt("🔐 Token de GitHub (crea uno en Settings → Developer settings → Personal access tokens → Tokens (classic) con permiso 'gist'):");
+        const token = prompt("🔐 Token de GitHub (Settings → Developer settings → Personal access tokens → Tokens (classic) con permiso 'gist'):");
         if (!token) return;
         
         const data = JSON.stringify(products, null, 2);
@@ -643,7 +550,7 @@
         if (products.length === 0) { showToast("No hay productos para exportar", true); return; }
         const headers = ["ID", "Código", "Nombre", "Marca/Autor", "Precio", "Stock", "Categoría", "Fecha"];
         const rows = products.map(p => [p.id, p.code, p.name, p.brand || '', p.price || 0, p.stock || 0, p.category || '', p.createdAt || '']);
-        const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+        const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
         const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -702,8 +609,9 @@
         const container = document.getElementById('barcodeContainer');
         if (!container.querySelector('svg')) { showToast('No hay código para imprimir', true); return; }
         const win = window.open('', '_blank');
-        win.document.write(`<html><head><title>Imprimir código</title></head><body style="display:flex; justify-content:center; align-items:center; height:100vh;">${container.innerHTML}</body></html>`);
-        win.document.close(); win.print();
+        win.document.write(`<html><head><title>Imprimir código</title><style>body{display:flex;justify-content:center;align-items:center;height:100vh;}</style></head><body>${container.innerHTML}</body></html>`);
+        win.document.close(); 
+        win.print();
     }
 
     // Eventos
