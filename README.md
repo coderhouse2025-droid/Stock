@@ -77,7 +77,6 @@ stock/
 └── (sin dependencias externas, todo vía CDN)
 
 
-
 ---
 ## 🗃️ Estructura de la base de datos
 ```js
