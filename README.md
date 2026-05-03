@@ -72,8 +72,11 @@ Stock es una aplicación web **sin servidor** que te permite:
 
 ## 📁 Estructura del proyecto
 stock/
+
 ├── index.html          # Aplicación principal (todo-en-uno)
+
 ├── README.md           # Este archivo
+
 └── (sin dependencias externas, todo vía CDN)
 
 
