@@ -9,6 +9,7 @@
 > Sistema web de digitalización y control de inventarios con escáner QR mediante la cámara del dispositivo. Permite registrar entradas y salidas de stock, generar etiquetas QR por producto, y exportar el inventario. Sin backend, sin instalación, corre 100% en el navegador.
 
 🔗 **Demo:** https://coderhouse2025-droid.github.io/Stock/
+📱 **Relacionado:**https://coderhouse2025-droid.github.io/Tableros-Interactivos/Librer%C3%ADa/dashboard.html
 
 ---
 
