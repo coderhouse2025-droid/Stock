@@ -1,3 +1,5 @@
+<img width="1400" height="851" alt="{D33C9F41-B1FB-4B67-A6BF-029914204D65}" src="https://github.com/user-attachments/assets/c5e0c63d-6b20-4979-bc13-2a6ed937f1c0" />
+
 # 📦 Stock — Sistema de Digitalización y Control de Inventarios
 
 [![Demo en vivo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge)](https://coderhouse2025-droid.github.io/Stock/)
