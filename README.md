@@ -1,6 +1,6 @@
 <img width="1400" height="851" alt="{D33C9F41-B1FB-4B67-A6BF-029914204D65}" src="https://github.com/user-attachments/assets/c5e0c63d-6b20-4979-bc13-2a6ed937f1c0" />
 
-# 📦 Stock — Sistema de Digitalización y Control de Inventarios
+# 📦 Stock Manager— Sistema de Digitalización y Control de Inventarios
 
 [![Demo en vivo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge)](https://coderhouse2025-droid.github.io/Stock/)
 [![Sin backend](https://img.shields.io/badge/Backend-Ninguno-lightgrey?style=for-the-badge)](#)
@@ -31,7 +31,7 @@
 
 ## 📋 Descripción
 
-**Stock** es una aplicación web de página única (SPA) para digitalizar y controlar inventarios físicos. El operario escanea el código QR de un producto con la cámara del dispositivo, y el sistema registra la entrada o salida, actualiza el stock disponible en tiempo real, y alerta cuando un artículo cae por debajo del umbral mínimo configurado.
+**Stock Manager** es una aplicación web de página única (SPA) para digitalizar y controlar inventarios físicos. El operario escanea el código QR de un producto con la cámara del dispositivo, y el sistema registra la entrada o salida, actualiza el stock disponible en tiempo real, y alerta cuando un artículo cae por debajo del umbral mínimo configurado.
 
 Los productos que no tienen QR pueden etiquetarse desde el propio sistema: se genera un código QR único por producto, listo para imprimir y pegar físicamente.
 
