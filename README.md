@@ -433,4 +433,4 @@ La misma razón que en el Facturador: portabilidad total. El encargado del depó
 
 ## 📄 Licencia
 
-MIT License — libre para uso, adaptación y distribución.
+Este proyecto está bajo la [Licencia MIT](LICENSE) — libre para uso como referencia, aprendizaje o desarrollo de proyectos propios.
